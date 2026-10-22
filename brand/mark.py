@@ -19,7 +19,7 @@ Construction (grid units, u):
 """
 import argparse, math
 
-STROKE, COUNTER, R = 7, 7, 0.5       # stroke and counter height (multiples of 7 for the 7:4 grid)
+STROKE, COUNTER, CHAMFER, R = 7, 7, 1, 0.5       # stroke and counter height (multiples of 7 for the 7:4 grid)
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
 DIAG = 8                                # 60° side width measured horizontally (6.95 u perpendicular)
@@ -52,9 +52,11 @@ def rounded_path(pts, r, u):
 
 def counters():
     # Two triangles: each counter is bounded by a horizontal stroke, a 60° side and the centre line.
-    yb, yt = H - STROKE, STROKE
-    left = [(LEFT_IN(yb), yb), (BAR[0], yb), (BAR[0], yt)]
-    right = [(BAR[1], yb), (BAR[1], yt), (RIGHT_IN(yt), yt)]
+    # The right-angle corner, where the stroke meets the centre line, has a 45° inner chamfer
+    # of CHAMFER u, like a gusset in a structural joint.
+    yb, yt, c = H - STROKE, STROKE, CHAMFER
+    left = [(LEFT_IN(yb), yb), (BAR[0] - c, yb), (BAR[0], yb - c), (BAR[0], yt)]
+    right = [(BAR[1], yb), (BAR[1], yt + c), (BAR[1] + c, yt), (RIGHT_IN(yt), yt)]
     return left, right
 
 
