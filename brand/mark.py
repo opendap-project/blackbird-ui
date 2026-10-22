@@ -13,6 +13,8 @@ Construction (grid units, u):
   is 4 u long: two six-sided counters.
 - Acute outer corners cut vertically at the side's grid point one stroke above the corner:
   each cut is 28 u long, one stroke, echoing the centre line.
+- Outer corners: every corner of the outline chamfered with the same cut-face length as the
+  counters (4 u).
 - No corner rounding.
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
@@ -83,7 +85,7 @@ def svg(u, fg, bg, grid):
     pad = 4 if grid else 2
     vw, vh = (TOTAL_W + 2 * pad) * u, (H + 2 * pad) * u
     left, right = counters()
-    d = rounded_path(OUTER, R, u) + " " + rounded_path(left, R, u) + " " + rounded_path(right, R, u)
+    d = rounded_path(chamfer(OUTER, CHAMFER), R, u) + " " + rounded_path(left, R, u) + " " + rounded_path(right, R, u)
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad * u} {-pad * u} {vw} {vh}">',
            '<title>OpenDAP</title>']
     if bg != "none":
