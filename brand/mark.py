@@ -19,11 +19,19 @@ Construction (grid units, u):
 """
 import argparse, math
 
-H, W, SLANT, R = 21, 33, 12, 0.5
-TOTAL_W = W + SLANT
-OUTER = [(4, 14), (4, 21), (33, 21), (41, 7), (41, 0), (12, 0)]   # clockwise, acute corners cut
-INNER = [(12, 14), (29, 14), (33, 7), (16, 7)]                     # counters' outer boundary
-BAR = (19, 26)                                                     # centre line x range
+STROKE, COUNTER, R = 7, 7, 0.5       # stroke and counter height (multiples of 7 for the 7:4 grid)
+H = 2 * STROKE + COUNTER                # 21 u
+SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
+DIAG = 8                                # 60° side width measured horizontally (6.95 u perpendicular)
+LEFT_IN = lambda y: (H - y) * 4 // 7 + DIAG          # inner contour of the left side
+# Triangular counters: the left side's inner contour meets the centre line at the counter's top.
+BAR = (LEFT_IN(STROKE), LEFT_IN(STROKE) + STROKE)    # centre line x range
+TOTAL_W = 2 * BAR[0] + STROKE                        # centre line in the middle of the width
+W = TOTAL_W - SLANT                                  # length of the horizontal edges
+RIGHT_IN = lambda y: W + (H - y) * 4 // 7 - DIAG
+OUTER = [(4, H - 7), (4, H), (W, H), (TOTAL_W - 4, 7), (TOTAL_W - 4, 0), (SLANT, 0)]  # acute corners cut
+INNER = [(LEFT_IN(H - STROKE), H - STROKE), (RIGHT_IN(H - STROKE), H - STROKE),
+         (RIGHT_IN(STROKE), STROKE), (LEFT_IN(STROKE), STROKE)]
 
 
 def rounded_path(pts, r, u):
@@ -43,9 +51,10 @@ def rounded_path(pts, r, u):
 
 
 def counters():
-    # The inner contour split by the centre line into the two counters (the O's and D's holes).
-    left = [(12, 14), (BAR[0], 14), (BAR[0], 7), (16, 7)]
-    right = [(BAR[1], 14), (29, 14), (33, 7), (BAR[1], 7)]
+    # Two triangles: each counter is bounded by a horizontal stroke, a 60° side and the centre line.
+    yb, yt = H - STROKE, STROKE
+    left = [(LEFT_IN(yb), yb), (BAR[0], yb), (BAR[0], yt)]
+    right = [(BAR[1], yb), (BAR[1], yt), (RIGHT_IN(yt), yt)]
     return left, right
 
 
