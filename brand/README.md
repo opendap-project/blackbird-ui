@@ -7,16 +7,16 @@ The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges 
 | Element | Value (grid units, u) | Why |
 |---|---|---|
 | Angles | 0°, 90° and 60° | Industrial (set-square) angles. The sides rise 7 u per 4 u across (60.26°), the grid-exact approximation of 60° (within 0.3°) |
-| Height | 91 u = 28 + 35 + 28 | Stroke at 30.8 % of the height: heavy, with open counters |
-| Horizontal strokes, centre line | 28 u | The base stroke |
-| 60° sides | 32 u measured horizontally (27.8 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
+| Height | 70 u = 21 + 28 + 21 | Stroke at 30 % of the height: heavy, with open counters |
+| Horizontal strokes, centre line | 21 u | The base stroke |
+| 60° sides | 24 u measured horizontally (20.8 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
 | Counters | Triangles bounded by a horizontal stroke, a 60° side and the centre line, which meets the side's inner contour at the counter's tip | The centre line is placed by this condition |
-| Counter chamfers | Every corner of each counter cut so that every cut face is 4 u long: two six-sided counters. A corner of angle t moves 4 / (2 sin(t/2)) u along each edge | Equal cut faces read as one deliberate detail; it repeats the cut corners outside |
-| Overall | 164 u × 91 u, about 1.8:1 | Follows from the triangular counters |
-| Centre line | x = 68–96 u | The middle of the 164 u width |
-| Acute outer corners | Cut vertically at the side's grid point one stroke above the corner, 28 u long | The cut is one stroke and echoes the centre line |
-| Outer chamfers | Every corner of the outline chamfered with the same 4 u cut face as the counters | One chamfer length across the whole mark |
-| Corner rounding | Outer chamfers only, 2 u (half a cut face); counters sharp | Soft outside for the hand and the eye, precise inside |
+| Counter chamfers | Every corner of each counter cut so that every cut face is 3 u long: two six-sided counters. A corner of angle t moves 3 / (2 sin(t/2)) u along each edge | Equal cut faces read as one deliberate detail |
+| Overall | 125 u × 70 u, about 1.79:1 | Follows from the triangular counters |
+| Centre line | x = 52–73 u | The middle of the 125 u width |
+| Acute outer corners | Cut vertically at the side's grid point one stroke above the corner, 21 u long | The cut is one stroke and echoes the centre line |
+| Outer chamfers | Every corner of the outline chamfered with the same 3 u cut face as the counters | One chamfer length across the whole mark |
+| Corner rounding | Every corner, outer and inner, by a true circular arc of 1.5 u radius (half a cut face) | The same curve at every corner whatever its angle; the tangent points sit r / tan(t/2) from the corner |
 
 Every point of the outer and inner contours falls on the grid.
 

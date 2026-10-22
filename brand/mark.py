@@ -4,25 +4,26 @@
 Construction (grid units, u):
 - Angles: 0°, 90° and 60°. The sides rise 7 u per 4 u across (60.26°), the grid-exact
   approximation of the 60° set-square angle (within 0.3°).
-- Strokes: horizontal edges and the vertical centre line 28 u. The 60° sides are 32 u wide
-  measured horizontally (27.8 u perpendicular): optically equal, and on the grid.
-- Height 91 u = 28 u + 35 u counter + 28 u (stroke 30.8 % of the height). The top edge is
-  offset 52 u (91 x 4/7). Overall 164 u x 91 u.
+- Strokes: horizontal edges and the vertical centre line 21 u. The 60° sides are 24 u wide
+  measured horizontally (20.8 u perpendicular): optically equal, and on the grid.
+- Height 70 u = 21 u + 28 u counter + 21 u (stroke 30 % of the height). The top edge is
+  offset 40 u (70 x 4/7). Overall 125 u x 70 u.
 - Counters: triangles (a horizontal stroke, a 60° side and the centre line, which meets the
   side's inner contour at the counter's tip), with all three corners chamfered; every cut face
-  is 4 u long: two six-sided counters.
+  is 3 u long: two six-sided counters.
 - Acute outer corners cut vertically at the side's grid point one stroke above the corner:
-  each cut is 28 u long, one stroke, echoing the centre line.
+  each cut is 21 u long, one stroke, echoing the centre line.
 - Outer corners: every corner of the outline chamfered with the same cut-face length as the
-  counters (4 u).
-- Rounding: only the outer chamfers, 2 u (half a cut face); the counters stay sharp.
+  counters (3 u).
+- Rounding: every corner, outer and inner, by a true circular arc of 1.5 u radius (half a
+  cut face), so the curve is identical at every corner whatever its angle.
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
 """
 import argparse, math
 
-STROKE, COUNTER, CHAMFER, R = 28, 35, 4, 0
-R_OUTER = 2                             # rounding of the outer chamfers' corners (half a cut face)       # stroke and counter height (multiples of 7 for the 7:4 grid)
+STROKE, COUNTER, CHAMFER, R = 21, 28, 3, 0
+R_OUTER = 1.5                             # radius of every corner, outer and inner (half a cut face)       # stroke and counter height (multiples of 7 for the 7:4 grid)
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
 DIAG = 8 * STROKE // 7                  # 60° side width measured horizontally (0.993 x STROKE perpendicular)
@@ -39,21 +40,30 @@ INNER = [(LEFT_IN(H - STROKE), H - STROKE), (RIGHT_IN(H - STROKE), H - STROKE),
 
 
 def rounded_path(pts, r, u):
+    """Closed polygon with every corner rounded by a true circular arc of radius r (the same
+    curve at every corner, whatever its angle). The tangent points sit r / tan(t/2) from the
+    corner along each edge, t being the corner's interior angle."""
+    f = lambda p: f"{p[0] * u:.3f},{p[1] * u:.3f}"
     if r <= 0:
-        f = lambda p: f"{p[0] * u:.3f},{p[1] * u:.3f}"
         return "M" + " L".join(f(p) for p in pts) + " Z"
-    n, segs = len(pts), []
+    n, corners = len(pts), []
     for i in range(n):
         prev, cur, nxt = pts[i - 1], pts[i], pts[(i + 1) % n]
-        def toward(a, b):
-            d = math.dist(a, b); k = min(r, d / 2) / d
-            return (a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k)
-        segs.append((toward(cur, prev), cur, toward(cur, nxt)))
-    f = lambda p: f"{p[0] * u:.2f},{p[1] * u:.2f}"
-    d = f"M{f(segs[0][2])}"
+        v1 = (prev[0] - cur[0], prev[1] - cur[1]); v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
+        d1, d2 = math.hypot(*v1), math.hypot(*v2)
+        cosang = max(-1.0, min(1.0, (v1[0] * v2[0] + v1[1] * v2[1]) / (d1 * d2)))
+        angle = math.acos(cosang)
+        t = r / math.tan(angle / 2)
+        t = min(t, d1 / 2, d2 / 2)
+        radius = t * math.tan(angle / 2)
+        a = (cur[0] + v1[0] * t / d1, cur[1] + v1[1] * t / d1)
+        b = (cur[0] + v2[0] * t / d2, cur[1] + v2[1] * t / d2)
+        cross = (cur[0] - prev[0]) * (nxt[1] - cur[1]) - (cur[1] - prev[1]) * (nxt[0] - cur[0])
+        corners.append((a, b, radius, 1 if cross > 0 else 0))
+    d = f"M{f(corners[0][1])}"
     for i in range(1, n + 1):
-        a, c, b = segs[i % n]
-        d += f" L{f(a)} Q{f(c)} {f(b)}"
+        a, b, radius, sweep = corners[i % n]
+        d += f" L{f(a)} A{radius * u:.3f},{radius * u:.3f} 0 0 {sweep} {f(b)}"
     return d + " Z"
 
 
@@ -86,7 +96,7 @@ def svg(u, fg, bg, grid):
     pad = 4 if grid else 2
     vw, vh = (TOTAL_W + 2 * pad) * u, (H + 2 * pad) * u
     left, right = counters()
-    d = rounded_path(chamfer(OUTER, CHAMFER), R_OUTER, u) + " " + rounded_path(left, R, u) + " " + rounded_path(right, R, u)
+    d = rounded_path(chamfer(OUTER, CHAMFER), R_OUTER, u) + " " + rounded_path(left, R_OUTER, u) + " " + rounded_path(right, R_OUTER, u)
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad * u} {-pad * u} {vw} {vh}">',
            '<title>OpenDAP</title>']
     if bg != "none":
