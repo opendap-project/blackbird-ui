@@ -13,8 +13,8 @@ Construction (grid units, u):
   is 3 u long: two six-sided counters.
 - Acute outer corners cut vertically at the side's grid point one stroke above the corner:
   each cut is 21 u long, one stroke, echoing the centre line.
-- Outer corners: every corner of the outline chamfered with the cut faces of 6 u, twice the
-  counters' (3 u), except where a vertical cut meets a 60° side (that face would run almost
+- Outer corners: every corner of the outline chamfered with the cut faces of 12 u, four times
+  the counters' (3 u), except where a vertical cut meets a 60° side (that face would run almost
   parallel to the rising sides).
 - Rounding: every corner, outer and inner, by a true circular arc of 1.5 u radius (half a
   cut face), so the curve is identical at every corner whatever its angle.
@@ -24,7 +24,7 @@ Construction (grid units, u):
 import argparse, math
 
 STROKE, COUNTER, CHAMFER, R = 21, 28, 3, 0
-CHAMFER_OUTER = 2 * CHAMFER                # outer chamfer cut faces: twice the counters'
+CHAMFER_OUTER = 4 * CHAMFER                # outer chamfer cut faces: four times the counters'
 # Outer corners, in OUTER order: no chamfer where a vertical cut meets a 60° side (its face would
 # run almost parallel to the rising sides).
 OUTER_CHAMFERS = [0, CHAMFER_OUTER, CHAMFER_OUTER, 0, CHAMFER_OUTER, CHAMFER_OUTER]
