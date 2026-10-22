@@ -110,7 +110,7 @@ Each OpenDAP OS release has a codename, and its assets are in `releases/<codenam
 | `opendap-<codename>-vertical-<colour>.svg` | The mark above both lines: square or tall spaces |
 | `opendap-<codename>-banner.svg` | 1280 × 640 px, the vertical lockup on graphite: release pages and repository previews |
 
-- **Type:** "OpenDAP" in SemiBold, as the wordmark; the codename in IBM Plex Sans Regular at half the wordmark's cap height, its cap top three quarters of a cap height under the wordmark's baseline. The stacked lockup is left aligned; the vertical one is centred.
+- **Type:** "OpenDAP" in SemiBold, as the wordmark; the codename in IBM Plex Sans Regular at half the wordmark's cap height, its cap top three quarters of a cap height under the wordmark's baseline. Both lockups are centred.
 - **Colour:** `light`, `dark` or `current`, one colour for the whole lockup, as the logo. Never orange.
 - **Clear space:** as the wordmark (stacked) or the vertical lockup (vertical).
 - **Minimum size (screen, 1×):** stacked 48 px, vertical 128 px; below them the codename stops being legible (checked in Chrome, 2026-10-22).

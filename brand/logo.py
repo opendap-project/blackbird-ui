@@ -88,8 +88,8 @@ def union(*bs):
 
 def release_layouts(font, regular, codename):
     """Release lockups, every builder (ox, oy, k) -> (path data, ink bounds) at scale k:
-    - stacked: "OpenDAP" (SemiBold) above the codename (Regular, smaller), left
-      aligned; no mark, like the wordmark;
+    - stacked: "OpenDAP" (SemiBold) above the codename (Regular, smaller), centred; no mark,
+      like the wordmark;
     - vertical: the mark above the two lines, all centred, with the vertical lockup's measures."""
     cs = mark.contours()
     mx0, my0, mx1, my1 = mark.bounds(cs)
@@ -104,7 +104,8 @@ def release_layouts(font, regular, codename):
         return a + b, union(ab, bb)
 
     def stacked(ox, oy, k=1):
-        return lines(lambda f, cap, text: 0, 0, WORDMARK_CAP, ox, oy, k)
+        w0 = width(font, WORDMARK_CAP, "OpenDAP")
+        return lines(lambda f, cap, text: (w0 - width(f, cap, text)) / 2, 0, WORDMARK_CAP, ox, oy, k)
 
     cx = (mx0 + mx1) / 2
 
