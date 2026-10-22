@@ -9,6 +9,7 @@ Requirements for the official UI components and design system of OpenDAP OS.
 | DS-003 | Color: warm black #0E0D0C and ivory #F3EFE7, with one accent per activity (Listen #F0A63C, Watch #7DB3E8, Read #A3C98F, Create #EE7E62, Day #6CC4B4, Advanced #B7A4F0). | should | Withdrawn |
 | DS-004 | Layout anatomy: status bar, a strip of activities (the active one large, the others peeking) and a 60 px playback thread at the bottom, replacing tabs and icons. | should | Withdrawn |
 | DS-005 | Reference screen: 480 × 800 portrait; some views landscape 800 × 480. | should | Withdrawn |
+| DS-006 | Components and templates shall be i18n-first: no hard-coded text, room for text expansion, mirrored layouts for right-to-left languages, and script-aware typography (SYS-025). | must | Confirmed |
 
 ## Context
 
