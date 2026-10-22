@@ -12,7 +12,7 @@ The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges 
 | 60° sides | 32 u measured horizontally (27.8 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
 | Counters | Triangles bounded by a horizontal stroke, a 60° side and the centre line, which meets the side's inner contour at the counter's tip | The centre line is placed by this condition |
 | Counter chamfers | Every corner of each counter cut so that every cut face is 6 u long: two six-sided counters. A corner of angle t moves 6 / (2 sin(t/2)) u along each edge | Equal cut faces read as one deliberate detail |
-| Optical correction | At both ends of the centre line the counter cuts take the same length along the line (that of the right-angle corner, 4.24 u); at the 30° corners the rest of the cut goes along the 60° side, keeping the 6 u face | Centres the straight part of each edge of the centre line in its counter, so the vertical does not look tilted among the diagonals |
+| Optical correction | Centre line only: it leans forward by 1° about its centre (top 0.43 u to the right, bottom 0.43 u to the left) | Among sides rising to the right a true vertical looks as if it leaned back (Zöllner effect); the lean makes it read as vertical. The counters keep symmetric chamfers |
 | Overall | 180 u × 105 u, about 1.71:1 | Follows from the triangular counters |
 | Centre line | x = 76–104 u | The middle of the 180 u width |
 | Acute outer corners | Cut vertically at the side's grid point one stroke above the corner, 28 u long | The cut is one stroke and echoes the centre line |
