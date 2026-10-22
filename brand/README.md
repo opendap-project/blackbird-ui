@@ -21,7 +21,9 @@ Every point of the outer and inner contours falls on the grid.
 
 ## Files
 
-- `mark.py`: generates the mark from this construction (`--grid`draws the construction drawing).`STROKE`and`COUNTER`(multiples of 7 u) set the weight;`CHAMFER`sets the length of every counter cut face. svg`: the mark, light on transparent.`opendap-mark-accent.svg`: in the brand orange.
--`opendap-mark-construction.svg`: on the grid, with the construction lines.
+- `mark.py`: generates the mark from this construction; `--grid` draws the construction drawing. `STROKE` and `COUNTER` (multiples of 7 u) set the weight, and `CHAMFER` sets the length of every counter cut face.
+- `opendap-mark.svg`: the mark, light on transparent.
+- `opendap-mark-accent.svg`: the mark in the brand orange.
+- `opendap-mark-construction.svg`: on the grid, with the construction lines.
 
 Status: Draft. Usage rules (clear space, minimum size, colours) follow once the shape is final. See the [design system](../docs/specs/design-system.md), §2.
