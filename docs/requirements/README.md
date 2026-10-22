@@ -10,6 +10,7 @@ Requirements for the official UI components and design system of OpenDAP OS.
 | DS-004 | Layout anatomy: status bar, a strip of activities (the active one large, the others peeking) and a 60 px playback thread at the bottom, replacing tabs and icons. | should | Withdrawn |
 | DS-005 | Reference screen: 480 × 800 portrait; some views landscape 800 × 480. | should | Withdrawn |
 | DS-006 | Components and templates shall be i18n-first: no hard-coded text, room for text expansion, mirrored layouts for right-to-left languages, and script-aware typography (SYS-025). | must | Confirmed |
+| DS-007 | The design system shall define one official theme, with its tokens and templates structured so community themes can replace them without code (SYS-030). | must | Confirmed |
 
 ## Context
 
