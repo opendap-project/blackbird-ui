@@ -83,7 +83,7 @@ The target: precision without aggression, sophistication without complexity, tec
 
 ### Brand mark (Draft)
 
-A lying rhomboid (parallelogram) outline with horizontal top and bottom edges and sides rising diagonally to the right, its two acute corners cut and every corner rounded, drawn as a thick stroke that grows inward (no fill), with a vertical centre line of the same thickness. The outline reads as the **O** and, with the line, the **D** of OpenDAP. Drafts and the parametric generator are in [`brand/`](../../brand/README.md); proportions are to be confirmed.
+A lying rhomboid outline with horizontal top and bottom edges and sides rising at 45°, its two acute corners cut, built on a 1:1 grid with industrial angles and almost invisible corner rounding, drawn as a thick stroke that grows inward (no fill), with a vertical centre line of the same thickness. The outline reads as the **O** and, with the line, the **D** of OpenDAP. Drafts and the parametric generator are in [`brand/`](../../brand/README.md); proportions are to be confirmed.
 
 ## 3. Colour
 
