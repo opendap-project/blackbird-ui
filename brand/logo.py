@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Generate every OpenDAP brand SVG: the mark, the wordmark and the vertical lockup, in each colour.
+"""Generate every OpenDAP brand SVG: the mark, the wordmark and the vertical lockup, in each colour,
+and each OpenDAP OS release's assets (release lockups and banner) in releases/<codename>/.
 
-The wordmark is "OpenDAP" in IBM Plex Sans SemiBold (SIL OFL 1.1), shaped with HarfBuzz (kerning on)
-and converted to outlines, so no font is needed to display it. The font is not stored here: pass the
-OTF from https://github.com/IBM/plex (ibm-plex-sans, fonts/complete/otf).
+The wordmark "OpenDAP" is set in IBM Plex Sans SemiBold and release codenames in Regular (SIL OFL 1.1), shaped
+with HarfBuzz (kerning on) and converted to outlines, so no font is needed to display them. The fonts
+are not stored here: pass the folder of OTFs from
+https://github.com/IBM/plex (ibm-plex-sans, fonts/complete/otf).
 
 Every output is flat (see mark.py): one filled <path>, absolute coordinates, cubic Béziers only, no
 transforms, groups, strokes, text or styles, and a viewBox fitted to the ink with its origin at 0,0.
 
-  logo.py --font IBMPlexSans-SemiBold.otf [--out DIR]
+  logo.py --plex DIR [--out DIR]
 
 Requires fontTools and uharfbuzz.
 """
@@ -27,15 +29,19 @@ LOCKUPS = {
     "vertical": (5 * S / 2, 3 * S / 2),        # 70 u caps, 42 u gap, wordmark centred under the mark
 }
 WORDMARK_CAP = 5 * S                           # the standalone wordmark's scale (it is scaled as a whole)
+RELEASES = ["Blackbird"]                       # OpenDAP OS release codenames, newest last
+CODENAME_SIZE = 1 / 2                        # codename cap height, in wordmark cap heights
+CODENAME_GAP = 3 / 4                           # wordmark baseline to codename cap top, in wordmark cap heights
+BANNER = (1280, 640)                           # release banner, px (release notes, repository preview)
 COLOURS = {"light": "#F5F6F4", "dark": "#111315", "accent": "#FF6A2A", "current": "currentColor"}
 NUM = lambda v: f"{round(v, 3):g}"
 
 
-def wordmark(font_path, cap_u, x0, baseline):
-    """Path data and ink bounds of "OpenDAP" with its cap height at cap_u, starting at x0 (the
-    left edge of the O's ink) on the given baseline."""
+def wordmark(font_path, cap_u, x0, baseline, text="OpenDAP"):
+    """Path data and ink bounds of `text` with its cap height at cap_u, starting at x0 (the left
+    edge of its ink) on the given baseline."""
     face = hb.Face(hb.Blob.from_file_path(font_path)); font = hb.Font(face)
-    buf = hb.Buffer(); buf.add_str("OpenDAP"); buf.guess_segment_properties()
+    buf = hb.Buffer(); buf.add_str(text); buf.guess_segment_properties()
     hb.shape(font, buf, {"kern": True, "liga": True})
     tt = TTFont(font_path); glyphs = tt.getGlyphSet(); order = tt.getGlyphOrder()
     s = cap_u / tt["OS/2"].sCapHeight
@@ -76,21 +82,83 @@ def layouts(font):
     return out
 
 
+def union(*bs):
+    return min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs)
+
+
+def release_layouts(font, regular, codename):
+    """Release lockups, every builder (ox, oy, k) -> (path data, ink bounds) at scale k:
+    - stacked: "OpenDAP" (SemiBold) above the codename (Regular, smaller), left
+      aligned; no mark, like the wordmark;
+    - vertical: the mark above the two lines, all centred, with the vertical lockup's measures."""
+    cs = mark.contours()
+    mx0, my0, mx1, my1 = mark.bounds(cs)
+    width = lambda f, cap, text: (lambda b: b[2] - b[0])(wordmark(f, cap, 0, 0, text)[1])
+    cap_v, gap = LOCKUPS["vertical"]
+
+    def lines(x_of, top, cap, ox, oy, k):
+        small = cap * CODENAME_SIZE
+        a, ab = wordmark(font, cap * k, ox + x_of(font, cap, "OpenDAP") * k, oy + (top + cap) * k)
+        b, bb = wordmark(regular, small * k, ox + x_of(regular, small, codename) * k,
+                         oy + (top + cap + cap * CODENAME_GAP + small) * k, codename)
+        return a + b, union(ab, bb)
+
+    def stacked(ox, oy, k=1):
+        return lines(lambda f, cap, text: 0, 0, WORDMARK_CAP, ox, oy, k)
+
+    cx = (mx0 + mx1) / 2
+
+    def vertical(ox, oy, k=1):
+        d, b = lines(lambda f, cap, text: cx - width(f, cap, text) / 2, my1 + gap, cap_v, ox, oy, k)
+        m = mark.path_data(cs, -ox / k, -oy / k, k)
+        return m + d, union((mx0 * k + ox, my0 * k + oy, mx1 * k + ox, my1 * k + oy), b)
+
+    return {"stacked": stacked, "vertical": vertical}
+
+
+def svg_file(path, build, fill, title):
+    x0, y0, x1, y1 = build(0, 0)[1]
+    d, _ = build(-x0, -y0)
+    with open(path, "w") as f:
+        f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {NUM(x1 - x0)} {NUM(y1 - y0)}" role="img">'
+                f'<title>{title}</title><path fill="{fill}" d="{d}"/></svg>\n')
+
+
+def banner(path, build, title):
+    """The vertical release lockup centred on graphite, its height half the banner's."""
+    W, H = BANNER
+    x0, y0, x1, y1 = build(0, 0)[1]
+    k = H / 2 / (y1 - y0)
+    d, _ = build((W - (x1 - x0) * k) / 2 - x0 * k, (H - (y1 - y0) * k) / 2 - y0 * k, k)
+    with open(path, "w") as f:
+        f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" role="img"><title>{title}</title>'
+                f'<rect width="{W}" height="{H}" fill="{COLOURS["dark"]}"/><path fill="{COLOURS["light"]}" d="{d}"/></svg>\n')
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--font", required=True, help="IBMPlexSans-SemiBold.otf")
+    ap.add_argument("--plex", required=True, help="the ibm-plex-sans fonts/complete/otf folder")
     ap.add_argument("--out", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "svg"))
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
-    for name, build in layouts(a.font).items():
-        x0, y0, x1, y1 = build(0, 0)[1]
-        d, _ = build(-x0, -y0)
+    bold = os.path.join(a.plex, "IBMPlexSans-SemiBold.otf")
+    regular = os.path.join(a.plex, "IBMPlexSans-Regular.otf")
+    for name, build in layouts(bold).items():
         for colour, fill in COLOURS.items():
             if colour == "accent" and name != "mark":
                 continue                       # the orange is for the mark alone
-            with open(os.path.join(a.out, f"opendap-{name}-{colour}.svg"), "w") as f:
-                f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {NUM(x1 - x0)} {NUM(y1 - y0)}" role="img">'
-                        f'<title>OpenDAP</title><path fill="{fill}" d="{d}"/></svg>\n')
+            svg_file(os.path.join(a.out, f"opendap-{name}-{colour}.svg"), build, fill, "OpenDAP")
+    here = os.path.dirname(os.path.abspath(__file__))
+    for codename in RELEASES:
+        slug, title = codename.lower(), f"OpenDAP {codename}"
+        rel = os.path.join(here, "releases", slug)
+        os.makedirs(rel, exist_ok=True)
+        builds = release_layouts(bold, regular, codename)
+        for name, build in builds.items():
+            for colour, fill in COLOURS.items():
+                if colour != "accent":
+                    svg_file(os.path.join(rel, f"opendap-{slug}-{name}-{colour}.svg"), build, fill, title)
+        banner(os.path.join(rel, f"opendap-{slug}-banner.svg"), builds["vertical"], title)
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "opendap-mark-construction.svg"), "w") as f:
         f.write(mark.construction())
 

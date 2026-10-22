@@ -100,13 +100,29 @@ The print values keep the wordmark's cap height at 3 mm or more. At 16 px the ga
 - Place it in a container or next to anything that enters its clear space.
 - Use the archived [option A](archive/option-a/README.md).
 
+## Release assets
+
+Each OpenDAP OS release has a codename, and its assets are in `releases/<codename>/`, generated with the rest. The first release is **Blackbird**: [`releases/blackbird/`](releases/blackbird/).
+
+| File | Use |
+|---|---|
+| `opendap-<codename>-stacked-<colour>.svg` | "OpenDAP" above the codename, no mark: release notes, documents, headers |
+| `opendap-<codename>-vertical-<colour>.svg` | The mark above both lines: square or tall spaces |
+| `opendap-<codename>-banner.svg` | 1280 × 640 px, the vertical lockup on graphite: release pages and repository previews |
+
+- **Type:** "OpenDAP" in SemiBold, as the wordmark; the codename in IBM Plex Sans Regular at half the wordmark's cap height, its cap top three quarters of a cap height under the wordmark's baseline. The stacked lockup is left aligned; the vertical one is centred.
+- **Colour:** `light`, `dark` or `current`, one colour for the whole lockup, as the logo. Never orange.
+- **Clear space:** as the wordmark (stacked) or the vertical lockup (vertical).
+- **Minimum size (screen, 1×):** stacked 48 px, vertical 128 px; below them the codename stops being legible (checked in Chrome, 2026-10-22).
+- The codename never stands alone with the mark, and never replaces the wordmark.
+
 ## Generators
 
 - `mark.py`: the mark from the construction above. `mark.py OUT.svg [--fill …]` writes one mark; `--grid` writes the construction drawing.
-- `logo.py`: every file in `svg/` and the construction drawing. It needs fontTools, uharfbuzz and IBM Plex Sans SemiBold (SIL OFL 1.1) from [IBM/plex](https://github.com/IBM/plex) (`ibm-plex-sans`, `fonts/complete/otf`); the font is not stored here:
+- `logo.py`: every file in `svg/`, the release assets and the construction drawing. It needs fontTools, uharfbuzz and IBM Plex Sans SemiBold and Regular (SIL OFL 1.1) from [IBM/plex](https://github.com/IBM/plex) (`ibm-plex-sans`, `fonts/complete/otf`); the fonts are not stored here. A new release is one more name in `RELEASES`:
 
   ```sh
-  python3 logo.py --font IBMPlexSans-SemiBold.otf
+  python3 logo.py --plex path/to/ibm-plex-sans/fonts/complete/otf
   ```
 
 Status: approved by the maintainers on 2026-10-22. The print minimum sizes stay **UNVERIFIED** until a first print run.
