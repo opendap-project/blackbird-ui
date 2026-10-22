@@ -1,19 +1,19 @@
 # Brand mark (Draft)
 
-The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges and sides rising at 45°, its two acute corners cut, a thick stroke that grows inward (no fill), and a vertical centre line of the same weight. The outline reads as the **O** and, with the line, the **D** of OpenDAP.
+The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges and sides rising at 60°, its two acute corners cut, a thick stroke that grows inward (no fill), and a vertical centre line of the same weight. The outline reads as the **O** and, with the line, the **D** of OpenDAP.
 
 ## Construction on a 1:1 grid
 
 | Element | Value (grid units, u) | Why |
 |---|---|---|
-| Angles | 0°, 90°, 45° only | Industrial (set-square) angles; 45° is the diagonal of the grid square |
-| Height | 24 u = 4 + 16 + 4 | Two strokes and the counter |
-| Horizontal strokes, centre line | 4 u | The base stroke |
-| 45° sides | 6 u measured horizontally (4.24 u perpendicular) | About 6 % heavier than the base stroke: the usual optical compensation for diagonals, and it keeps the inner contour on the grid |
-| Horizontal edges | 40 u | Each counter then narrows to exactly one stroke (4 u) at its tip and widens to 20 u at its base |
-| Overall | 64 u × 24 u | The 45° sides add the height (24 u) to the edge length |
-| Centre line | x = 30–34 u | The middle of the 64 u width |
-| Acute corners | Cut vertically, 4 u long, at the first grid point of the side | The cut faces repeat the stroke and echo the centre line |
+| Angles | 0°, 90° and 60° | Industrial (set-square) angles. The sides rise 7 u per 4 u across (60.26°), the grid-exact approximation of 60° (within 0.3°); 60° rather than 45° keeps the mark compact |
+| Height | 28 u = 7 + 14 + 7 | Two strokes and the counter |
+| Horizontal strokes, centre line | 7 u | The base stroke: heavy, for presence at small sizes |
+| 60° sides | 8 u measured horizontally (6.95 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
+| Horizontal edges | 39 u | Each counter narrows to 4 u at its tip and widens to 12 u at its base |
+| Overall | 55 u × 28 u, about 2:1 | |
+| Centre line | x = 24–31 u | The middle of the 55 u width |
+| Acute corners | Cut vertically at the first grid point of the side, 7 u long | The cut is exactly one stroke and echoes the centre line |
 | Corner rounding | 0.5 u on every corner, outer and inner | Subtle, almost invisible |
 
 Every point of the outer and inner contours falls on the grid.

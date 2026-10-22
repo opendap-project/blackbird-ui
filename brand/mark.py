@@ -2,27 +2,28 @@
 """Generate the OpenDAP mark (Draft), constructed on a 1:1 grid with industrial angles.
 
 Construction (grid units, u):
-- Angles: 0°, 90° and 45° only. 45° is the industrial (set-square) angle native to a
-  square grid: the sides rise one unit per unit across.
-- Strokes: horizontal edges and the vertical centre line 4 u. The 45° sides are 6 u wide
-  measured horizontally, 4.24 u measured perpendicular: about 6 % heavier, the usual
-  optical compensation for diagonals, and it keeps the inner contour on the grid.
-- Height 24 u = 4 u + 16 u counter + 4 u. The top edge is offset 24 u (45°). Horizontal
-  edges 40 u long; overall 64 u x 24 u. Centre line from x = 30 u to 34 u (the middle of 64 u).
-- Counters: each narrows to 4 u (one stroke) at its tip and widens to 20 u at its base.
-- Acute corners (bottom-left, top-right) cut vertically at the first grid point of the side,
-  4 u long (one stroke), echoing the centre line.
+- Angles: 0°, 90° and 60°. The sides rise 7 u per 4 u across (60.26°), the grid-exact
+  approximation of the 60° set-square angle (within 0.3°).
+- Strokes: horizontal edges and the vertical centre line 7 u. The 60° sides are 8 u wide
+  measured horizontally, 6.95 u perpendicular: optically equal to the base stroke, and it
+  keeps the inner contour on the grid.
+- Height 28 u = 7 u + 14 u counter + 7 u. The top edge is offset 16 u (28 x 4/7).
+  Horizontal edges 39 u; overall 55 u x 28 u (about 2:1).
+- Centre line x = 24-31 u, the middle of the 55 u width. Each counter narrows to 4 u at its tip
+  and widens to 12 u at its base.
+- Acute corners (bottom-left, top-right) cut vertically at the first grid point of the side;
+  the cut is 7 u long, exactly one stroke, echoing the centre line.
 - Every corner, outer and inner, rounded by 0.5 u: subtle, almost invisible.
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
 """
 import argparse, math
 
-H, W, SLANT, R = 24, 40, 24, 0.5
+H, W, SLANT, R = 28, 39, 16, 0.5
 TOTAL_W = W + SLANT
-OUTER = [(4, 20), (4, 24), (40, 24), (60, 4), (60, 0), (24, 0)]   # clockwise, acute corners cut
-INNER = [(10, 20), (38, 20), (54, 4), (26, 4)]                     # counters' outer boundary
-BAR = (30, 34)                                                     # centre line x range
+OUTER = [(4, 21), (4, 28), (39, 28), (51, 7), (51, 0), (16, 0)]   # clockwise, acute corners cut
+INNER = [(12, 21), (35, 21), (43, 7), (20, 7)]                     # counters' outer boundary
+BAR = (24, 31)                                                     # centre line x range
 
 
 def rounded_path(pts, r, u):
@@ -43,8 +44,8 @@ def rounded_path(pts, r, u):
 
 def counters():
     # The inner contour split by the centre line into the two counters (the O's and D's holes).
-    left = [(10, 20), (BAR[0], 20), (BAR[0], 4), (26, 4)]
-    right = [(BAR[1], 20), (38, 20), (54, 4), (BAR[1], 4)]
+    left = [(12, 21), (BAR[0], 21), (BAR[0], 7), (20, 7)]
+    right = [(BAR[1], 21), (35, 21), (43, 7), (BAR[1], 7)]
     return left, right
 
 
@@ -70,9 +71,9 @@ def svg(u, fg, bg, grid):
         inn = " ".join(f"{x * u},{y * u}" for x, y in INNER)
         out.append(f'<g fill="none" stroke="#FF6A2A" stroke-width="{u * 0.12}" stroke-dasharray="{u * 0.5},{u * 0.3}">'
                    f'<polygon points="{par}"/><polygon points="{inn}"/></g>')
-        # 45° reference square at the bottom-left
+        # 7:4 (60°) reference triangle at the bottom-left
         out.append(f'<g fill="none" stroke="#69BFFF" stroke-width="{u * 0.12}">'
-                   f'<polyline points="0,{H * u} {4 * u},{H * u} {4 * u},{(H - 4) * u} 0,{H * u}"/></g>')
+                   f'<polyline points="0,{H * u} {4 * u},{H * u} {4 * u},{(H - 7) * u} 0,{H * u}"/></g>')
     out.append('</svg>')
     return "\n".join(out) + "\n"
 
