@@ -4,26 +4,26 @@ The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges 
 
 ## Construction on a 1:1 grid
 
-| Element | Value (grid units, u) | Why |
-|---|---|---|
-| Angles | 0°, 90° and 60° | Industrial (set-square) angles. The sides rise 7 u per 4 u across (60.26°), the grid-exact approximation of 60° (within 0.3°) |
-| Height | 105 u = 28 + 49 + 28 | Stroke at 26.7 % of the height |
-| Horizontal strokes, centre line | 28 u | The base stroke |
-| 60° sides | 32 u measured horizontally (27.8 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
-| Counters | Triangles bounded by a horizontal stroke, a 60° side and the centre line, which meets the side's inner contour at the counter's tip | The centre line is placed by this condition |
-| Counter chamfers | Every corner of each counter cut so that every cut face is 6 u long: two six-sided counters. A corner of angle t moves 6 / (2 sin(t/2)) u along each edge | Equal cut faces read as one deliberate detail |
-| Optical correction | Centre line only: it leans forward by 1° about its centre (top 0.43 u to the right, bottom 0.43 u to the left) | Among sides rising to the right a true vertical looks as if it leaned back (Zöllner effect); the lean makes it read as vertical. The counters keep symmetric chamfers |
-| Overall | 180 u × 105 u, about 1.71:1 | Follows from the triangular counters |
-| Centre line | x = 76–104 u | The middle of the 180 u width |
-| Acute outer corners | Cut vertically at the side's grid point one stroke above the corner, 28 u long | The cut is one stroke and echoes the centre line |
-| Outer chamfers | 16 u cut faces, on the four corners where the outline meets a horizontal edge; none where a vertical cut meets a 60° side | A chamfer there would run almost parallel to the rising sides and blur them |
-| Corner rounding | Every corner, outer and inner, by a true circular arc of 2 u radius | The same curve at every corner whatever its angle; the tangent points sit r / tan(t/2) from the corner |
+Grid unit u; major grid every 7 u. Every value is either a grid integer or a simple ratio of the stroke (28 u).
 
-Every point of the outer and inner contours falls on the grid.
+| Element | Value | Why |
+|---|---|---|
+| Proportions | Stroke : counter : stroke = 4 : 7 : 4 (28 : 49 : 28 u); height 105 u | The stroke is 4/15 of the height: heavy, with open counters |
+| Overall | 180 u × 105 u = 12 : 7 | Follows from the triangular counters |
+| Angles | 0°, 90° and 60° | Industrial (set-square) angles. The sides rise 7 u per 4 u across (60.26°), the grid-exact approximation of 60° (within 0.3°) |
+| 60° sides | 32 u measured horizontally = 8/7 of the stroke (27.8 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
+| Centre line | x = 76–104 u, exactly vertical, centred on the 180 u width | Placed by the triangular counters: it meets each side's inner contour at the counter's tip |
+| Counters | Triangles bounded by a horizontal stroke, a 60° side and the centre line, chamfered into six sides | The O and the D read through the outline and the line |
+| Counter chamfers | Faces of 8 u (2/7 of the stroke). The 60° and 90° corners are cut symmetrically. The acute corner is cut by a horizontal face, parallel to the strokes, half a stroke (14 u) from the corner | The horizontal cut gives the centre line a square end, so it reads as vertical among the diagonals; 8 u is the face that puts that cut exactly half a stroke from the corner |
+| Acute outer corners | Cut vertically at x = 16 u (4/7 of the stroke), the side's grid point one stroke above the corner; each cut is 28 u long | One stroke long; echoes the centre line |
+| Outer chamfers | Faces of 16 u (twice the counters', equal to the cut offset) where the outline meets a horizontal edge; none where a vertical cut meets a 60° side | One family of chamfers in a 2 : 1 ratio; a chamfer next to the rising sides would blur them |
+| Corner rounding | Every corner, outer and inner, by a true circular arc of 2 u (1/14 of the stroke) | The same small curve at every corner, whatever its angle |
+
+The outer contour and the counters' horizontal and vertical edges fall on the grid; chamfer points on the 60° sides are set by the face lengths.
 
 ## Files
 
-- `mark.py`: generates the mark from this construction; `--grid` draws the construction drawing. `STROKE` and `COUNTER` (multiples of 7 u) set the weight, and `CHAMFER` sets the length of every counter cut face.
+- `mark.py`: generates the mark from this construction; `--grid` draws the construction drawing. `STROKE`, `COUNTER` and `CHAMFER` set the construction; the rest is derived from them.
 - `opendap-mark.svg`: the mark, light on transparent.
 - `opendap-mark-accent.svg`: the mark in the brand orange.
 - `opendap-mark-construction.svg`: on the grid, with the construction lines.

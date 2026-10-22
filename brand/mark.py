@@ -1,35 +1,33 @@
 #!/usr/bin/env python3
 """Generate the OpenDAP mark (Draft), constructed on a 1:1 grid with industrial angles.
 
-Construction (grid units, u):
+Construction (grid units, u; major grid every 7 u):
+- Proportions: stroke : counter : stroke = 4 : 7 : 4 (28 : 49 : 28, height 105 u); overall
+  180 u x 105 u = 12 : 7.
 - Angles: 0°, 90° and 60°. The sides rise 7 u per 4 u across (60.26°), the grid-exact
   approximation of the 60° set-square angle (within 0.3°).
 - Strokes: horizontal edges and the vertical centre line 28 u. The 60° sides are 32 u wide
-  measured horizontally (27.8 u perpendicular): optically equal, and on the grid.
-- Height 105 u = 28 u + 49 u counter + 28 u (stroke 26.7 % of the height). The top edge is
-  offset 60 u (105 x 4/7). Overall 180 u x 105 u.
+  measured horizontally (8/7 of the stroke, 27.8 u perpendicular): optically equal, on the grid.
 - Counters: triangles (a horizontal stroke, a 60° side and the centre line, which meets the
-  side's inner contour at the counter's tip), with all three corners chamfered; every cut face
-  is 6 u long: two six-sided counters.
-- Acute outer corners cut vertically at the side's grid point one stroke above the corner:
-  each cut is 28 u long, one stroke, echoing the centre line.
-- Optical correction, centre line only: it leans forward by 1° about its centre, so it reads as
-  vertical among the sides rising to the right (Zöllner effect).
-- Outer corners: every corner of the outline chamfered with the cut faces of 16 u, except where a vertical cut meets a 60° side (that face would run almost
-  parallel to the rising sides).
-- Rounding: every corner, outer and inner, by a true circular arc of 2 u radius (half a
-  cut face), so the curve is identical at every corner whatever its angle.
+  side's inner contour at the counter's tip), chamfered by faces of 8 u: the 60° and 90° corners
+  symmetrically; the acute corner by a horizontal face, parallel to the strokes, which sits half
+  a stroke (14 u) from the corner, so the centre line ends square.
+- Acute outer corners cut vertically at the side's grid point one stroke above the corner
+  (x = 16 u = 4/7 of the stroke), 28 u long, echoing the centre line.
+- Outer chamfers: 16 u faces (twice the counters', equal to the cut offset) where the outline meets
+  a horizontal edge; none where a vertical cut meets a 60° side.
+- Rounding: every corner, outer and inner, by a true circular arc of 2 u (1/14 of the stroke).
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
 """
 import argparse, math
 
-STROKE, COUNTER, CHAMFER, R = 28, 49, 6, 0
-CHAMFER_OUTER = 16                         # outer chamfer cut faces
+STROKE, COUNTER, CHAMFER, R = 28, 49, 8, 0   # stroke : counter : stroke = 4 : 7 : 4
+CHAMFER_OUTER = 2 * CHAMFER                # 16 u: twice the counters', equal to the outer cut CUT
 # Outer corners, in OUTER order: no chamfer where a vertical cut meets a 60° side (its face would
 # run almost parallel to the rising sides).
 OUTER_CHAMFERS = [0, CHAMFER_OUTER, CHAMFER_OUTER, 0, CHAMFER_OUTER, CHAMFER_OUTER]
-R_OUTER = 2                             # radius of every corner, outer and inner
+R_OUTER = STROKE / 14                      # 2 u: radius of every corner
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
 DIAG = 8 * STROKE // 7                  # 60° side width measured horizontally (0.993 x STROKE perpendicular)
@@ -92,20 +90,20 @@ def chamfer(poly, length):
     return out
 
 
-BAR_TILT = 1.0                          # optical correction of the centre line, degrees (top leans right)
-
-
 def counters():
     # Each counter is a triangle (a horizontal stroke, a 60° side and the centre line) with all
-    # three corners chamfered symmetrically by faces of CHAMFER u: a six-sided counter.
-    # Optical correction, centre line only: among sides rising to the right a true vertical looks
-    # as if it leaned back (Zöllner effect), so the centre line leans forward by BAR_TILT degrees
-    # about its centre: its top moves right and its bottom left by the same amount.
-    yb, yt = H - STROKE, STROKE
-    half = (yb - yt) / 2 * math.tan(math.radians(BAR_TILT))
-    left = [(LEFT_IN(yb), yb), (BAR[0] - half, yb), (BAR[0] + half, yt)]
-    right = [(BAR[1] - half, yb), (BAR[1] + half, yt), (RIGHT_IN(yt), yt)]
-    return chamfer(left, CHAMFER), chamfer(right, CHAMFER)
+    # three corners chamfered by faces of CHAMFER u: a six-sided counter. The 60° and 90° corners
+    # are cut symmetrically; the acute 30° corner (where the centre line meets the 60° side) is cut
+    # by a horizontal face, parallel to the strokes, so the centre line keeps a square end.
+    yb, yt, c = H - STROKE, STROKE, CHAMFER
+    depth = c * 7 / 4                          # a horizontal face of c u across the apex (7:4 side)
+    tri_l = [(LEFT_IN(yb), yb), (BAR[0], yb), (BAR[0], yt)]
+    left = chamfer(tri_l, [c, c, 0])
+    left = left[:-1] + [(BAR[0], yt + depth), (BAR[0] - c, yt + depth)]
+    tri_r = [(BAR[1], yb), (BAR[1], yt), (RIGHT_IN(yt), yt)]
+    right = chamfer(tri_r, [0, c, c])
+    right = [(BAR[1] + c, yb - depth), (BAR[1], yb - depth)] + right[1:]
+    return left, right
 
 
 def svg(u, fg, bg, grid):
@@ -123,7 +121,13 @@ def svg(u, fg, bg, grid):
             g.append(f'<line x1="{x * u}" y1="{-pad * u}" x2="{x * u}" y2="{(H + pad) * u}"/>')
         for y in range(-pad, H + pad + 1):
             g.append(f'<line x1="{-pad * u}" y1="{y * u}" x2="{(TOTAL_W + pad) * u}" y2="{y * u}"/>')
-        out.append(f'<g stroke="#3A4148" stroke-width="{u * 0.04}">' + "".join(g) + '</g>')
+        out.append(f'<g stroke="#22272C" stroke-width="{u * 0.04}">' + "".join(g) + '</g>')
+        major = []
+        for x in range(0, TOTAL_W + 1, 7):
+            major.append(f'<line x1="{x * u}" y1="{-pad * u}" x2="{x * u}" y2="{(H + pad) * u}"/>')
+        for y in range(0, H + 1, 7):
+            major.append(f'<line x1="{-pad * u}" y1="{y * u}" x2="{(TOTAL_W + pad) * u}" y2="{y * u}"/>')
+        out.append(f'<g stroke="#3A4148" stroke-width="{u * 0.12}">' + "".join(major) + '</g>')
     out.append(f'<path d="{d}" fill="{fg}" fill-rule="evenodd"{" opacity=\"0.85\"" if grid else ""}/>')
     if grid:
         par = " ".join(f"{x * u},{y * u}" for x, y in [(0, H), (W, H), (TOTAL_W, 0), (SLANT, 0)])
