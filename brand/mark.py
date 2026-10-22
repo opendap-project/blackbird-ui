@@ -15,13 +15,14 @@ Construction (grid units, u):
   each cut is 28 u long, one stroke, echoing the centre line.
 - Outer corners: every corner of the outline chamfered with the same cut-face length as the
   counters (4 u).
-- No corner rounding.
+- Rounding: only the outer chamfers, 2 u (half a cut face); the counters stay sharp.
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
 """
 import argparse, math
 
-STROKE, COUNTER, CHAMFER, R = 28, 35, 4, 0       # stroke and counter height (multiples of 7 for the 7:4 grid)
+STROKE, COUNTER, CHAMFER, R = 28, 35, 4, 0
+R_OUTER = 2                             # rounding of the outer chamfers' corners (half a cut face)       # stroke and counter height (multiples of 7 for the 7:4 grid)
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
 DIAG = 8 * STROKE // 7                  # 60° side width measured horizontally (0.993 x STROKE perpendicular)
@@ -85,7 +86,7 @@ def svg(u, fg, bg, grid):
     pad = 4 if grid else 2
     vw, vh = (TOTAL_W + 2 * pad) * u, (H + 2 * pad) * u
     left, right = counters()
-    d = rounded_path(chamfer(OUTER, CHAMFER), R, u) + " " + rounded_path(left, R, u) + " " + rounded_path(right, R, u)
+    d = rounded_path(chamfer(OUTER, CHAMFER), R_OUTER, u) + " " + rounded_path(left, R, u) + " " + rounded_path(right, R, u)
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad * u} {-pad * u} {vw} {vh}">',
            '<title>OpenDAP</title>']
     if bg != "none":

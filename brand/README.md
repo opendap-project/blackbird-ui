@@ -16,7 +16,7 @@ The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges 
 | Centre line | x = 68–96 u | The middle of the 164 u width |
 | Acute outer corners | Cut vertically at the side's grid point one stroke above the corner, 28 u long | The cut is one stroke and echoes the centre line |
 | Outer chamfers | Every corner of the outline chamfered with the same 4 u cut face as the counters | One chamfer length across the whole mark |
-| Corner rounding | None | Sharp, industrial corners |
+| Corner rounding | Outer chamfers only, 2 u (half a cut face); counters sharp | Soft outside for the hand and the eye, precise inside |
 
 Every point of the outer and inner contours falls on the grid.
 
