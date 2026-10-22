@@ -4,34 +4,33 @@
 Construction (grid units, u):
 - Angles: 0°, 90° and 60°. The sides rise 7 u per 4 u across (60.26°), the grid-exact
   approximation of the 60° set-square angle (within 0.3°).
-- Strokes: horizontal edges and the vertical centre line 7 u. The 60° sides are 8 u wide
-  measured horizontally, 6.95 u perpendicular: optically equal to the base stroke, and it
-  keeps the inner contour on the grid.
-- Height 21 u = 7 u + 7 u counter + 7 u: the stroke is one third of the height.
-  The top edge is offset 12 u (21 x 4/7). Horizontal edges 33 u; overall 45 u x 21 u.
-- Centre line x = 19-26 u, the middle of the 45 u width. Each counter narrows to 3 u at its tip
-  and widens to 7 u (one stroke) at its base.
-- Acute corners (bottom-left, top-right) cut vertically at the first grid point of the side;
-  the cut is 7 u long, exactly one stroke, echoing the centre line.
-- Counters: triangles with all three corners chamfered; every cut face is 1 u long: two
-  six-sided counters.
+- Strokes: horizontal edges and the vertical centre line 28 u. The 60° sides are 32 u wide
+  measured horizontally (27.8 u perpendicular): optically equal, and on the grid.
+- Height 91 u = 28 u + 35 u counter + 28 u (stroke 30.8 % of the height). The top edge is
+  offset 52 u (91 x 4/7). Overall 164 u x 91 u.
+- Counters: triangles (a horizontal stroke, a 60° side and the centre line, which meets the
+  side's inner contour at the counter's tip), with all three corners chamfered; every cut face
+  is 4 u long: two six-sided counters.
+- Acute outer corners cut vertically at the side's grid point one stroke above the corner:
+  each cut is 28 u long, one stroke, echoing the centre line.
 - No corner rounding.
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
 """
 import argparse, math
 
-STROKE, COUNTER, CHAMFER, R = 7, 7, 1, 0       # stroke and counter height (multiples of 7 for the 7:4 grid)
+STROKE, COUNTER, CHAMFER, R = 28, 35, 4, 0       # stroke and counter height (multiples of 7 for the 7:4 grid)
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
-DIAG = 8                                # 60° side width measured horizontally (6.95 u perpendicular)
+DIAG = 8 * STROKE // 7                  # 60° side width measured horizontally (0.993 x STROKE perpendicular)
 LEFT_IN = lambda y: (H - y) * 4 // 7 + DIAG          # inner contour of the left side
 # Triangular counters: the left side's inner contour meets the centre line at the counter's top.
 BAR = (LEFT_IN(STROKE), LEFT_IN(STROKE) + STROKE)    # centre line x range
 TOTAL_W = 2 * BAR[0] + STROKE                        # centre line in the middle of the width
 W = TOTAL_W - SLANT                                  # length of the horizontal edges
 RIGHT_IN = lambda y: W + (H - y) * 4 // 7 - DIAG
-OUTER = [(4, H - 7), (4, H), (W, H), (TOTAL_W - 4, 7), (TOTAL_W - 4, 0), (SLANT, 0)]  # acute corners cut
+CUT = 4 * STROKE // 7                   # the side's grid point one stroke above its acute corner
+OUTER = [(CUT, H - STROKE), (CUT, H), (W, H), (TOTAL_W - CUT, STROKE), (TOTAL_W - CUT, 0), (SLANT, 0)]  # acute corners cut
 INNER = [(LEFT_IN(H - STROKE), H - STROKE), (RIGHT_IN(H - STROKE), H - STROKE),
          (RIGHT_IN(STROKE), STROKE), (LEFT_IN(STROKE), STROKE)]
 
@@ -104,7 +103,7 @@ def svg(u, fg, bg, grid):
                    f'<polygon points="{par}"/><polygon points="{inn}"/></g>')
         # 7:4 (60°) reference triangle at the bottom-left
         out.append(f'<g fill="none" stroke="#69BFFF" stroke-width="{u * 0.12}">'
-                   f'<polyline points="0,{H * u} {4 * u},{H * u} {4 * u},{(H - 7) * u} 0,{H * u}"/></g>')
+                   f'<polyline points="0,{H * u} {CUT * u},{H * u} {CUT * u},{(H - STROKE) * u} 0,{H * u}"/></g>')
     out.append('</svg>')
     return "\n".join(out) + "\n"
 

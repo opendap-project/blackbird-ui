@@ -6,23 +6,22 @@ The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges 
 
 | Element | Value (grid units, u) | Why |
 |---|---|---|
-| Angles | 0°, 90° and 60° | Industrial (set-square) angles. The sides rise 7 u per 4 u across (60.26°), the grid-exact approximation of 60° (within 0.3°); 60° rather than 45° keeps the mark compact |
-| Height | 21 u = 7 + 7 + 7 | The stroke is one third of the height |
-| Horizontal strokes, centre line | 7 u | The base stroke: heavy, for presence at small sizes |
-| 60° sides | 8 u measured horizontally (6.95 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
-| Counters | Triangles: each is bounded by a horizontal stroke, a 60° side and the centre line, which meets the side's inner contour at the counter's tip | The centre line is placed by this condition, not by a free choice |
-| Counter chamfers | Every corner of each triangular counter cut so that every cut face is 1 u long: two six-sided counters. A corner of angle t moves 1 / (2 sin(t/2)) u along each edge (about 1 u at the 60° corner, 0.71 u at the right angle, 1.95 u at the 30° corner) | Equal cut faces read as one deliberate detail; it repeats the cut corners outside |
-| Horizontal edges, overall | 27 u; 39 u × 21 u, about 1.86:1 | Follow from the triangular counters |
-| Centre line | x = 16–23 u | The middle of the 39 u width |
-| Acute corners | Cut vertically at the first grid point of the side, 7 u long | The cut is exactly one stroke and echoes the centre line |
+| Angles | 0°, 90° and 60° | Industrial (set-square) angles. The sides rise 7 u per 4 u across (60.26°), the grid-exact approximation of 60° (within 0.3°) |
+| Height | 91 u = 28 + 35 + 28 | Stroke at 30.8 % of the height: heavy, with open counters |
+| Horizontal strokes, centre line | 28 u | The base stroke |
+| 60° sides | 32 u measured horizontally (27.8 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
+| Counters | Triangles bounded by a horizontal stroke, a 60° side and the centre line, which meets the side's inner contour at the counter's tip | The centre line is placed by this condition |
+| Counter chamfers | Every corner of each counter cut so that every cut face is 4 u long: two six-sided counters. A corner of angle t moves 4 / (2 sin(t/2)) u along each edge | Equal cut faces read as one deliberate detail; it repeats the cut corners outside |
+| Overall | 164 u × 91 u, about 1.8:1 | Follows from the triangular counters |
+| Centre line | x = 68–96 u | The middle of the 164 u width |
+| Acute outer corners | Cut vertically at the side's grid point one stroke above the corner, 28 u long | The cut is one stroke and echoes the centre line |
 | Corner rounding | None | Sharp, industrial corners |
 
 Every point of the outer and inner contours falls on the grid.
 
 ## Files
 
-- `mark.py`: generates the mark from this construction (`--grid` draws the construction drawing). `CHAMFER` sets the length of every counter cut face (1 u). `COUNTER` sets the counter height in multiples of 7 u (7 u: stroke at one third of the height; 14 u: a lighter weight); every other dimension follows.
-- `opendap-mark.svg`: the mark, light on transparent. `opendap-mark-accent.svg`: in the brand orange.
-- `opendap-mark-construction.svg`: on the grid, with the construction lines.
+- `mark.py`: generates the mark from this construction (`--grid`draws the construction drawing).`STROKE`and`COUNTER`(multiples of 7 u) set the weight;`CHAMFER`sets the length of every counter cut face. svg`: the mark, light on transparent.`opendap-mark-accent.svg`: in the brand orange.
+-`opendap-mark-construction.svg`: on the grid, with the construction lines.
 
 Status: Draft. Usage rules (clear space, minimum size, colours) follow once the shape is final. See the [design system](../docs/specs/design-system.md), §2.
