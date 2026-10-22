@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -20 280 190">
+<title>OpenDAP</title>
+<defs><clipPath id="mark-shape"><path d="M19.20,63.00 L100.80,12.00 L139.20,12.00 L220.80,63.00 Q240.00,75.00 220.80,87.00 L139.20,138.00 L100.80,138.00 L19.20,87.00 Q0.00,75.00 19.20,63.00 Z"/></clipPath></defs>
+<g clip-path="url(#mark-shape)" fill="none" stroke="#FF6A2A" stroke-linejoin="round">
+<path d="M19.20,63.00 L100.80,12.00 L139.20,12.00 L220.80,63.00 Q240.00,75.00 220.80,87.00 L139.20,138.00 L100.80,138.00 L19.20,87.00 Q0.00,75.00 19.20,63.00 Z" stroke-width="44"/>
+<line x1="120.0" y1="0" x2="120.0" y2="150" stroke-width="22"/>
+</g>
+</svg>

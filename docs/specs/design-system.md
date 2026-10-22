@@ -81,6 +81,10 @@ The design language draws on:
 
 The target: precision without aggression, sophistication without complexity, technology without intimidation.
 
+### Brand mark (Draft)
+
+A horizontal rhombus outline with the top and bottom corners cut flat and the left and right tips rounded, drawn as a thick stroke that grows inward (no fill), with a vertical centre line of the same thickness. The outline reads as the **O** and, with the line, the **D** of OpenDAP. Drafts and the parametric generator are in [`brand/`](../../brand/README.md); proportions are to be confirmed.
+
 ## 3. Colour
 
 The palette is graphite, white and one restrained orange accent. Plasma colours add a wider spectrum only where they serve a specific purpose (§4).
