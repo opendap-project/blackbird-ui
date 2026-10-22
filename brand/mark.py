@@ -4,30 +4,30 @@
 Construction (grid units, u):
 - Angles: 0°, 90° and 60°. The sides rise 7 u per 4 u across (60.26°), the grid-exact
   approximation of the 60° set-square angle (within 0.3°).
-- Strokes: horizontal edges and the vertical centre line 21 u. The 60° sides are 24 u wide
-  measured horizontally (20.8 u perpendicular): optically equal, and on the grid.
-- Height 70 u = 21 u + 28 u counter + 21 u (stroke 30 % of the height). The top edge is
-  offset 40 u (70 x 4/7). Overall 125 u x 70 u.
+- Strokes: horizontal edges and the vertical centre line 35 u. The 60° sides are 40 u wide
+  measured horizontally (34.7 u perpendicular): optically equal, and on the grid.
+- Height 119 u = 35 u + 49 u counter + 35 u (stroke 29.4 % of the height). The top edge is
+  offset 68 u (119 x 4/7). Overall 211 u x 119 u.
 - Counters: triangles (a horizontal stroke, a 60° side and the centre line, which meets the
   side's inner contour at the counter's tip), with all three corners chamfered; every cut face
-  is 4.5 u long: two six-sided counters.
+  is 7.5 u long: two six-sided counters.
 - Acute outer corners cut vertically at the side's grid point one stroke above the corner:
-  each cut is 21 u long, one stroke, echoing the centre line.
-- Outer corners: every corner of the outline chamfered with the cut faces of 12 u, except where a vertical cut meets a 60° side (that face would run almost
+  each cut is 35 u long, one stroke, echoing the centre line.
+- Outer corners: every corner of the outline chamfered with the cut faces of 20 u, except where a vertical cut meets a 60° side (that face would run almost
   parallel to the rising sides).
-- Rounding: every corner, outer and inner, by a true circular arc of 1.5 u radius (half a
+- Rounding: every corner, outer and inner, by a true circular arc of 2.5 u radius (half a
   cut face), so the curve is identical at every corner whatever its angle.
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
 """
 import argparse, math
 
-STROKE, COUNTER, CHAMFER, R = 21, 28, 4.5, 0
-CHAMFER_OUTER = 12                         # outer chamfer cut faces
+STROKE, COUNTER, CHAMFER, R = 35, 49, 7.5, 0
+CHAMFER_OUTER = 20                         # outer chamfer cut faces
 # Outer corners, in OUTER order: no chamfer where a vertical cut meets a 60° side (its face would
 # run almost parallel to the rising sides).
 OUTER_CHAMFERS = [0, CHAMFER_OUTER, CHAMFER_OUTER, 0, CHAMFER_OUTER, CHAMFER_OUTER]
-R_OUTER = 1.5                             # radius of every corner, outer and inner (half a cut face)       # stroke and counter height (multiples of 7 for the 7:4 grid)
+R_OUTER = 2.5                             # radius of every corner, outer and inner
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
 DIAG = 8 * STROKE // 7                  # 60° side width measured horizontally (0.993 x STROKE perpendicular)
