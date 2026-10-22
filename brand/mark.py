@@ -13,6 +13,8 @@ Construction (grid units, u):
   is 6 u long: two six-sided counters.
 - Acute outer corners cut vertically at the side's grid point one stroke above the corner:
   each cut is 28 u long, one stroke, echoing the centre line.
+- Optical correction: at both ends of the centre line the counter cuts take the same length along
+  the line, so the line does not look tilted; the 30° corners cut asymmetrically to keep the face.
 - Outer corners: every corner of the outline chamfered with the cut faces of 16 u, except where a vertical cut meets a 60° side (that face would run almost
   parallel to the rising sides).
 - Rounding: every corner, outer and inner, by a true circular arc of 2 u radius (half a
@@ -90,13 +92,37 @@ def chamfer(poly, length):
     return out
 
 
+def cut_corner(prev, cur, nxt, face, leg_prev=None):
+    """Points replacing one corner by a cut face of length `face`. Symmetric by default; with
+    `leg_prev`, the cut is that long along the edge toward `prev` and the leg toward `nxt` is
+    solved so the face keeps its length (law of cosines)."""
+    v1 = (prev[0] - cur[0], prev[1] - cur[1]); v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
+    d1, d2 = math.hypot(*v1), math.hypot(*v2)
+    cos_t = (v1[0] * v2[0] + v1[1] * v2[1]) / (d1 * d2)
+    if leg_prev is None:
+        a = b = face / (2 * math.sin(math.acos(cos_t) / 2))
+    else:
+        a = leg_prev   # b^2 - 2ab cos t + a^2 - face^2 = 0
+        b = a * cos_t + math.sqrt((a * cos_t) ** 2 - a * a + face * face)
+    return [(cur[0] + v1[0] * a / d1, cur[1] + v1[1] * a / d1),
+            (cur[0] + v2[0] * b / d2, cur[1] + v2[1] * b / d2)]
+
+
 def counters():
     # Each counter is a triangle (a horizontal stroke, a 60° side and the centre line) with all
-    # three corners chamfered with cut faces of equal length (CHAMFER u): a six-sided counter.
-    yb, yt = H - STROKE, STROKE
-    left = [(LEFT_IN(yb), yb), (BAR[0], yb), (BAR[0], yt)]
-    right = [(BAR[1], yb), (BAR[1], yt), (RIGHT_IN(yt), yt)]
-    return chamfer(left, CHAMFER), chamfer(right, CHAMFER)
+    # three corners chamfered by faces of CHAMFER u: a six-sided counter.
+    # Optical correction: at both ends of the centre line the cuts take the same length along the
+    # line (that of the right-angle corner), so the straight part of each edge of the centre line
+    # sits in the middle of the counter and the line does not look tilted. At the 30° corner the
+    # rest of the cut goes along the 60° side, keeping the face length.
+    yb, yt, c = H - STROKE, STROKE, CHAMFER
+    bar_leg = c / (2 * math.sin(math.pi / 4))           # what the right-angle corner takes
+    a, b0, c0 = (LEFT_IN(yb), yb), (BAR[0], yb), (BAR[0], yt)
+    left = cut_corner(c0, a, b0, c) + cut_corner(a, b0, c0, c) + cut_corner(b0, c0, a, c, leg_prev=bar_leg)
+    b1, c1, d = (BAR[1], yb), (BAR[1], yt), (RIGHT_IN(yt), yt)
+    right = (list(reversed(cut_corner(c1, b1, d, c, leg_prev=bar_leg)))
+             + cut_corner(b1, c1, d, c) + cut_corner(c1, d, b1, c))
+    return left, right
 
 
 def svg(u, fg, bg, grid):
