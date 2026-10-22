@@ -13,13 +13,14 @@ Construction (grid units, u):
   and widens to 7 u (one stroke) at its base.
 - Acute corners (bottom-left, top-right) cut vertically at the first grid point of the side;
   the cut is 7 u long, exactly one stroke, echoing the centre line.
-- Every corner, outer and inner, rounded by 0.5 u: subtle, almost invisible.
+- Counters: triangles with all three corners chamfered by 1 u: two six-sided counters.
+- Every corner, outer and inner, rounded by 0.2 u: almost none.
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
 """
 import argparse, math
 
-STROKE, COUNTER, CHAMFER, R = 7, 7, 1, 0.5       # stroke and counter height (multiples of 7 for the 7:4 grid)
+STROKE, COUNTER, CHAMFER, R = 7, 7, 1, 0.2       # stroke and counter height (multiples of 7 for the 7:4 grid)
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
 DIAG = 8                                # 60° side width measured horizontally (6.95 u perpendicular)
@@ -50,14 +51,26 @@ def rounded_path(pts, r, u):
     return d + " Z"
 
 
+def chamfer(poly, c):
+    """Cut every corner of a polygon: each vertex becomes two points, c u from it along its two edges."""
+    out, n = [], len(poly)
+    for i in range(n):
+        prev, cur, nxt = poly[i - 1], poly[i], poly[(i + 1) % n]
+        for a, b in ((cur, prev), (cur, nxt)):
+            d = math.dist(a, b)
+            out.append((a[0] + (b[0] - a[0]) * c / d, a[1] + (b[1] - a[1]) * c / d))
+        out[-2], out[-1] = out[-2], out[-1]
+    # order: for each vertex, the point toward the previous vertex, then toward the next one
+    return out
+
+
 def counters():
-    # Two triangles: each counter is bounded by a horizontal stroke, a 60° side and the centre line.
-    # The right-angle corner, where the stroke meets the centre line, has a 45° inner chamfer
-    # of CHAMFER u, like a gusset in a structural joint.
-    yb, yt, c = H - STROKE, STROKE, CHAMFER
-    left = [(LEFT_IN(yb), yb), (BAR[0] - c, yb), (BAR[0], yb - c), (BAR[0], yt)]
-    right = [(BAR[1], yb), (BAR[1], yt + c), (BAR[1] + c, yt), (RIGHT_IN(yt), yt)]
-    return left, right
+    # Each counter is a triangle (a horizontal stroke, a 60° side and the centre line) with all
+    # three corners chamfered by CHAMFER u along each edge: a six-sided counter.
+    yb, yt = H - STROKE, STROKE
+    left = [(LEFT_IN(yb), yb), (BAR[0], yb), (BAR[0], yt)]
+    right = [(BAR[1], yb), (BAR[1], yt), (RIGHT_IN(yt), yt)]
+    return chamfer(left, CHAMFER), chamfer(right, CHAMFER)
 
 
 def svg(u, fg, bg, grid):
