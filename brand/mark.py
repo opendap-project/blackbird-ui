@@ -13,8 +13,8 @@ Construction (grid units, u):
   is 3 u long: two six-sided counters.
 - Acute outer corners cut vertically at the side's grid point one stroke above the corner:
   each cut is 21 u long, one stroke, echoing the centre line.
-- Outer corners: every corner of the outline chamfered with the same cut-face length as the
-  counters (3 u).
+- Outer corners: every corner of the outline chamfered with the cut faces of 6 u, twice the
+  counters' (3 u).
 - Rounding: every corner, outer and inner, by a true circular arc of 1.5 u radius (half a
   cut face), so the curve is identical at every corner whatever its angle.
 
@@ -23,6 +23,7 @@ Construction (grid units, u):
 import argparse, math
 
 STROKE, COUNTER, CHAMFER, R = 21, 28, 3, 0
+CHAMFER_OUTER = 2 * CHAMFER                # outer chamfer cut faces: twice the counters'
 R_OUTER = 1.5                             # radius of every corner, outer and inner (half a cut face)       # stroke and counter height (multiples of 7 for the 7:4 grid)
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
@@ -96,7 +97,7 @@ def svg(u, fg, bg, grid):
     pad = 4 if grid else 2
     vw, vh = (TOTAL_W + 2 * pad) * u, (H + 2 * pad) * u
     left, right = counters()
-    d = rounded_path(chamfer(OUTER, CHAMFER), R_OUTER, u) + " " + rounded_path(left, R_OUTER, u) + " " + rounded_path(right, R_OUTER, u)
+    d = rounded_path(chamfer(OUTER, CHAMFER_OUTER), R_OUTER, u) + " " + rounded_path(left, R_OUTER, u) + " " + rounded_path(right, R_OUTER, u)
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad * u} {-pad * u} {vw} {vh}">',
            '<title>OpenDAP</title>']
     if bg != "none":
