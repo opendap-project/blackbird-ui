@@ -13,14 +13,15 @@ Construction (grid units, u):
   and widens to 7 u (one stroke) at its base.
 - Acute corners (bottom-left, top-right) cut vertically at the first grid point of the side;
   the cut is 7 u long, exactly one stroke, echoing the centre line.
-- Counters: triangles with all three corners chamfered by 1 u: two six-sided counters.
-- Every corner, outer and inner, rounded by 0.2 u: almost none.
+- Counters: triangles with all three corners chamfered; every cut face is 1 u long: two
+  six-sided counters.
+- No corner rounding.
 
   mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
 """
 import argparse, math
 
-STROKE, COUNTER, CHAMFER, R = 7, 7, 1, 0.2       # stroke and counter height (multiples of 7 for the 7:4 grid)
+STROKE, COUNTER, CHAMFER, R = 7, 7, 1, 0       # stroke and counter height (multiples of 7 for the 7:4 grid)
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
 DIAG = 8                                # 60° side width measured horizontally (6.95 u perpendicular)
@@ -36,6 +37,9 @@ INNER = [(LEFT_IN(H - STROKE), H - STROKE), (RIGHT_IN(H - STROKE), H - STROKE),
 
 
 def rounded_path(pts, r, u):
+    if r <= 0:
+        f = lambda p: f"{p[0] * u:.3f},{p[1] * u:.3f}"
+        return "M" + " L".join(f(p) for p in pts) + " Z"
     n, segs = len(pts), []
     for i in range(n):
         prev, cur, nxt = pts[i - 1], pts[i], pts[(i + 1) % n]
@@ -51,22 +55,25 @@ def rounded_path(pts, r, u):
     return d + " Z"
 
 
-def chamfer(poly, c):
-    """Cut every corner of a polygon: each vertex becomes two points, c u from it along its two edges."""
+def chamfer(poly, length):
+    """Cut every corner of a polygon so that every cut face has the same length.
+    A corner of angle t cut symmetrically with a face of length L moves L / (2 sin(t/2))
+    along each of its edges."""
     out, n = [], len(poly)
     for i in range(n):
         prev, cur, nxt = poly[i - 1], poly[i], poly[(i + 1) % n]
-        for a, b in ((cur, prev), (cur, nxt)):
-            d = math.dist(a, b)
-            out.append((a[0] + (b[0] - a[0]) * c / d, a[1] + (b[1] - a[1]) * c / d))
-        out[-2], out[-1] = out[-2], out[-1]
-    # order: for each vertex, the point toward the previous vertex, then toward the next one
+        v1 = (prev[0] - cur[0], prev[1] - cur[1]); v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
+        d1, d2 = math.hypot(*v1), math.hypot(*v2)
+        angle = math.acos((v1[0] * v2[0] + v1[1] * v2[1]) / (d1 * d2))
+        leg = length / (2 * math.sin(angle / 2))
+        out.append((cur[0] + v1[0] * leg / d1, cur[1] + v1[1] * leg / d1))
+        out.append((cur[0] + v2[0] * leg / d2, cur[1] + v2[1] * leg / d2))
     return out
 
 
 def counters():
     # Each counter is a triangle (a horizontal stroke, a 60° side and the centre line) with all
-    # three corners chamfered by CHAMFER u along each edge: a six-sided counter.
+    # three corners chamfered with cut faces of equal length (CHAMFER u): a six-sided counter.
     yb, yt = H - STROKE, STROKE
     left = [(LEFT_IN(yb), yb), (BAR[0], yb), (BAR[0], yt)]
     right = [(BAR[1], yb), (BAR[1], yt), (RIGHT_IN(yt), yt)]

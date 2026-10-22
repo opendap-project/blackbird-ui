@@ -11,17 +11,17 @@ The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges 
 | Horizontal strokes, centre line | 7 u | The base stroke: heavy, for presence at small sizes |
 | 60° sides | 8 u measured horizontally (6.95 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
 | Counters | Triangles: each is bounded by a horizontal stroke, a 60° side and the centre line, which meets the side's inner contour at the counter's tip | The centre line is placed by this condition, not by a free choice |
-| Counter chamfers | Every corner of each triangular counter cut by 1 u along both edges: two six-sided counters | Repeats the cut corners outside. The cuts on horizontal and vertical edges fall on the grid; on the 60° side they are 1 u measured along it |
+| Counter chamfers | Every corner of each triangular counter cut so that every cut face is 1 u long: two six-sided counters. A corner of angle t moves 1 / (2 sin(t/2)) u along each edge (about 1 u at the 60° corner, 0.71 u at the right angle, 1.95 u at the 30° corner) | Equal cut faces read as one deliberate detail; it repeats the cut corners outside |
 | Horizontal edges, overall | 27 u; 39 u × 21 u, about 1.86:1 | Follow from the triangular counters |
 | Centre line | x = 16–23 u | The middle of the 39 u width |
 | Acute corners | Cut vertically at the first grid point of the side, 7 u long | The cut is exactly one stroke and echoes the centre line |
-| Corner rounding | 0.2 u on every corner, outer and inner | Almost none: only enough to soften the edge at small sizes |
+| Corner rounding | None | Sharp, industrial corners |
 
 Every point of the outer and inner contours falls on the grid.
 
 ## Files
 
-- `mark.py`: generates the mark from this construction (`--grid` draws the construction drawing). `CHAMFER` sets the counter chamfers (1 u). `COUNTER` sets the counter height in multiples of 7 u (7 u: stroke at one third of the height; 14 u: a lighter weight); every other dimension follows.
+- `mark.py`: generates the mark from this construction (`--grid` draws the construction drawing). `CHAMFER` sets the length of every counter cut face (1 u). `COUNTER` sets the counter height in multiples of 7 u (7 u: stroke at one third of the height; 14 u: a lighter weight); every other dimension follows.
 - `opendap-mark.svg`: the mark, light on transparent. `opendap-mark-accent.svg`: in the brand orange.
 - `opendap-mark-construction.svg`: on the grid, with the construction lines.
 
