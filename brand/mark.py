@@ -7,10 +7,10 @@ Construction (grid units, u):
 - Strokes: horizontal edges and the vertical centre line 7 u. The 60° sides are 8 u wide
   measured horizontally, 6.95 u perpendicular: optically equal to the base stroke, and it
   keeps the inner contour on the grid.
-- Height 28 u = 7 u + 14 u counter + 7 u. The top edge is offset 16 u (28 x 4/7).
-  Horizontal edges 39 u; overall 55 u x 28 u (about 2:1).
-- Centre line x = 24-31 u, the middle of the 55 u width. Each counter narrows to 4 u at its tip
-  and widens to 12 u at its base.
+- Height 21 u = 7 u + 7 u counter + 7 u: the stroke is one third of the height.
+  The top edge is offset 12 u (21 x 4/7). Horizontal edges 33 u; overall 45 u x 21 u.
+- Centre line x = 19-26 u, the middle of the 45 u width. Each counter narrows to 3 u at its tip
+  and widens to 7 u (one stroke) at its base.
 - Acute corners (bottom-left, top-right) cut vertically at the first grid point of the side;
   the cut is 7 u long, exactly one stroke, echoing the centre line.
 - Every corner, outer and inner, rounded by 0.5 u: subtle, almost invisible.
@@ -19,11 +19,11 @@ Construction (grid units, u):
 """
 import argparse, math
 
-H, W, SLANT, R = 28, 39, 16, 0.5
+H, W, SLANT, R = 21, 33, 12, 0.5
 TOTAL_W = W + SLANT
-OUTER = [(4, 21), (4, 28), (39, 28), (51, 7), (51, 0), (16, 0)]   # clockwise, acute corners cut
-INNER = [(12, 21), (35, 21), (43, 7), (20, 7)]                     # counters' outer boundary
-BAR = (24, 31)                                                     # centre line x range
+OUTER = [(4, 14), (4, 21), (33, 21), (41, 7), (41, 0), (12, 0)]   # clockwise, acute corners cut
+INNER = [(12, 14), (29, 14), (33, 7), (16, 7)]                     # counters' outer boundary
+BAR = (19, 26)                                                     # centre line x range
 
 
 def rounded_path(pts, r, u):
@@ -44,8 +44,8 @@ def rounded_path(pts, r, u):
 
 def counters():
     # The inner contour split by the centre line into the two counters (the O's and D's holes).
-    left = [(12, 21), (BAR[0], 21), (BAR[0], 7), (20, 7)]
-    right = [(BAR[1], 21), (35, 21), (43, 7), (BAR[1], 7)]
+    left = [(12, 14), (BAR[0], 14), (BAR[0], 7), (16, 7)]
+    right = [(BAR[1], 14), (29, 14), (33, 7), (BAR[1], 7)]
     return left, right
 
 
