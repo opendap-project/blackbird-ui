@@ -14,7 +14,8 @@ Construction (grid units, u):
 - Acute outer corners cut vertically at the side's grid point one stroke above the corner:
   each cut is 21 u long, one stroke, echoing the centre line.
 - Outer corners: every corner of the outline chamfered with the cut faces of 6 u, twice the
-  counters' (3 u).
+  counters' (3 u), except where a vertical cut meets a 60° side (that face would run almost
+  parallel to the rising sides).
 - Rounding: every corner, outer and inner, by a true circular arc of 1.5 u radius (half a
   cut face), so the curve is identical at every corner whatever its angle.
 
@@ -24,6 +25,9 @@ import argparse, math
 
 STROKE, COUNTER, CHAMFER, R = 21, 28, 3, 0
 CHAMFER_OUTER = 2 * CHAMFER                # outer chamfer cut faces: twice the counters'
+# Outer corners, in OUTER order: no chamfer where a vertical cut meets a 60° side (its face would
+# run almost parallel to the rising sides).
+OUTER_CHAMFERS = [0, CHAMFER_OUTER, CHAMFER_OUTER, 0, CHAMFER_OUTER, CHAMFER_OUTER]
 R_OUTER = 1.5                             # radius of every corner, outer and inner (half a cut face)       # stroke and counter height (multiples of 7 for the 7:4 grid)
 H = 2 * STROKE + COUNTER                # 21 u
 SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
@@ -69,16 +73,19 @@ def rounded_path(pts, r, u):
 
 
 def chamfer(poly, length):
-    """Cut every corner of a polygon so that every cut face has the same length.
-    A corner of angle t cut symmetrically with a face of length L moves L / (2 sin(t/2))
-    along each of its edges."""
+    """Cut corners of a polygon so that every cut face has the same length. `length` is a number
+    (every corner) or a list with one length per corner (0 leaves that corner uncut). A corner of
+    angle t cut symmetrically with a face of length L moves L / (2 sin(t/2)) along each edge."""
+    lengths = length if isinstance(length, (list, tuple)) else [length] * len(poly)
     out, n = [], len(poly)
     for i in range(n):
         prev, cur, nxt = poly[i - 1], poly[i], poly[(i + 1) % n]
+        if not lengths[i]:
+            out.append(cur); continue
         v1 = (prev[0] - cur[0], prev[1] - cur[1]); v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
         d1, d2 = math.hypot(*v1), math.hypot(*v2)
         angle = math.acos((v1[0] * v2[0] + v1[1] * v2[1]) / (d1 * d2))
-        leg = length / (2 * math.sin(angle / 2))
+        leg = lengths[i] / (2 * math.sin(angle / 2))
         out.append((cur[0] + v1[0] * leg / d1, cur[1] + v1[1] * leg / d1))
         out.append((cur[0] + v2[0] * leg / d2, cur[1] + v2[1] * leg / d2))
     return out
@@ -97,7 +104,7 @@ def svg(u, fg, bg, grid):
     pad = 4 if grid else 2
     vw, vh = (TOTAL_W + 2 * pad) * u, (H + 2 * pad) * u
     left, right = counters()
-    d = rounded_path(chamfer(OUTER, CHAMFER_OUTER), R_OUTER, u) + " " + rounded_path(left, R_OUTER, u) + " " + rounded_path(right, R_OUTER, u)
+    d = rounded_path(chamfer(OUTER, OUTER_CHAMFERS), R_OUTER, u) + " " + rounded_path(left, R_OUTER, u) + " " + rounded_path(right, R_OUTER, u)
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad * u} {-pad * u} {vw} {vh}">',
            '<title>OpenDAP</title>']
     if bg != "none":
