@@ -1,142 +1,132 @@
 #!/usr/bin/env python3
-"""Generate the OpenDAP mark (Draft), constructed on a 1:1 grid with industrial angles.
+"""Generate the OpenDAP mark: two identical triangular pieces, the O pointing left and the D pointing
+right, offset diagonally. See README.md for the construction table and the usage rules.
 
-Construction (grid units, u; major grid every 7 u):
-- Proportions: stroke : counter : stroke = 4 : 7 : 4 (28 : 49 : 28, height 105 u); overall
-  180 u x 105 u = 12 : 7.
-- Angles: 0°, 90° and 60°. The sides rise 7 u per 4 u across (60.26°), the grid-exact
-  approximation of the 60° set-square angle (within 0.3°).
-- Strokes: horizontal edges and the vertical centre line 28 u. The 60° sides are 32 u wide
-  measured horizontally (8/7 of the stroke, 27.8 u perpendicular): optically equal, on the grid.
-- Counters: triangles (a horizontal stroke, a 60° side and the centre line, which meets the
-  side's inner contour at the counter's tip), chamfered by faces of 8 u: the 60° and 90° corners
-  symmetrically; the acute corner by a horizontal face, parallel to the strokes, which sits half
-  a stroke (14 u) from the corner, so the centre line ends square.
-- Acute outer corners cut vertically at the side's grid point one stroke above the corner
-  (x = 16 u = 4/7 of the stroke), 28 u long, echoing the centre line.
-- Outer chamfers: 16 u faces (twice the counters', equal to the cut offset) where the outline meets
-  a horizontal edge; none where a vertical cut meets a 60° side.
-- Rounding: every corner, outer and inner, by a true circular arc of 2 u (1/14 of the stroke).
+Output SVGs are flat on purpose, so they scale and convert without surprises: one filled <path>,
+absolute coordinates, no transforms, groups, strokes, styles or arcs (corners are cubic Béziers),
+outer contours clockwise and counters counter-clockwise (the same result under either fill rule),
+and a viewBox fitted to the visible outline with its origin at 0,0.
 
-  mark.py OUT.svg [--unit PX] [--fg HEX] [--bg HEX|none] [--grid]
+  mark.py OUT.svg [--fill HEX|currentColor] [--grid]
 """
 import argparse, math
 
-STROKE, COUNTER, CHAMFER, R = 28, 49, 8, 0   # stroke : counter : stroke = 4 : 7 : 4
-CHAMFER_OUTER = 2 * CHAMFER                # 16 u: twice the counters', equal to the outer cut CUT
-# Outer corners, in OUTER order: no chamfer where a vertical cut meets a 60° side (its face would
-# run almost parallel to the rising sides).
-OUTER_CHAMFERS = [0, CHAMFER_OUTER, CHAMFER_OUTER, 0, CHAMFER_OUTER, CHAMFER_OUTER]
-R_OUTER = STROKE / 14                      # 2 u: radius of every corner
-H = 2 * STROKE + COUNTER                # 21 u
-SLANT = H * 4 // 7                      # top-edge offset of a 7:4 (60°) side: 12 u
-DIAG = 8 * STROKE // 7                  # 60° side width measured horizontally (0.993 x STROKE perpendicular)
-LEFT_IN = lambda y: (H - y) * 4 // 7 + DIAG          # inner contour of the left side
-# Triangular counters: the left side's inner contour meets the centre line at the counter's top.
-BAR = (LEFT_IN(STROKE), LEFT_IN(STROKE) + STROKE)    # centre line x range
-TOTAL_W = 2 * BAR[0] + STROKE                        # centre line in the middle of the width
-W = TOTAL_W - SLANT                                  # length of the horizontal edges
-RIGHT_IN = lambda y: W + (H - y) * 4 // 7 - DIAG
-CUT = 4 * STROKE // 7                   # the side's grid point one stroke above its acute corner
-OUTER = [(CUT, H - STROKE), (CUT, H), (W, H), (TOTAL_W - CUT, STROKE), (TOTAL_W - CUT, 0), (SLANT, 0)]  # acute corners cut
-INNER = [(LEFT_IN(H - STROKE), H - STROKE), (RIGHT_IN(H - STROKE), H - STROKE),
-         (RIGHT_IN(STROKE), STROKE), (LEFT_IN(STROKE), STROKE)]
+STROKE = 28                                    # stem, u
+SIDE = 8 * STROKE // 7                         # sloped stroke, measured vertically: 32 u
+CHAMFER_OUTER, CHAMFER = 16, 8                 # one symmetric chamfer per corner, outside and in the counter
+R = STROKE / 14                                # corner radius: 2 u
+GAP = STROKE // 2                              # between the pieces, and each piece's offset: 14 u
 
-
-def rounded_path(pts, r, u):
-    """Closed polygon with every corner rounded by a true circular arc of radius r (the same
-    curve at every corner, whatever its angle). The tangent points sit r / tan(t/2) from the
-    corner along each edge, t being the corner's interior angle."""
-    f = lambda p: f"{p[0] * u:.3f},{p[1] * u:.3f}"
-    if r <= 0:
-        return "M" + " L".join(f(p) for p in pts) + " Z"
-    n, corners = len(pts), []
-    for i in range(n):
-        prev, cur, nxt = pts[i - 1], pts[i], pts[(i + 1) % n]
-        v1 = (prev[0] - cur[0], prev[1] - cur[1]); v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
-        d1, d2 = math.hypot(*v1), math.hypot(*v2)
-        cosang = max(-1.0, min(1.0, (v1[0] * v2[0] + v1[1] * v2[1]) / (d1 * d2)))
-        angle = math.acos(cosang)
-        t = r / math.tan(angle / 2)
-        t = min(t, d1 / 2, d2 / 2)
-        radius = t * math.tan(angle / 2)
-        a = (cur[0] + v1[0] * t / d1, cur[1] + v1[1] * t / d1)
-        b = (cur[0] + v2[0] * t / d2, cur[1] + v2[1] * t / d2)
-        cross = (cur[0] - prev[0]) * (nxt[1] - cur[1]) - (cur[1] - prev[1]) * (nxt[0] - cur[0])
-        corners.append((a, b, radius, 1 if cross > 0 else 0))
-    d = f"M{f(corners[0][1])}"
-    for i in range(1, n + 1):
-        a, b, radius, sweep = corners[i % n]
-        d += f" L{f(a)} A{radius * u:.3f},{radius * u:.3f} 0 0 {sweep} {f(b)}"
-    return d + " Z"
+# The D piece on the 1:1 grid: stem on x = 0, apex to the right; the sides run 4 u down per 7 u across.
+STEM, DEPTH = 192, 168
+TRI = [(0, 0), (DEPTH, STEM // 2), (0, STEM)]
+COUNTER = [(STROKE, SIDE + 16), (DEPTH - 2 * STROKE, STEM // 2), (STROKE, STEM - SIDE - 16)]
+APEX_IN = 14                                   # the 16 u apex face sits 14 u in from the tip
 
 
 def chamfer(poly, length):
-    """Cut corners of a polygon so that every cut face has the same length. `length` is a number
-    (every corner) or a list with one length per corner (0 leaves that corner uncut). A corner of
-    angle t cut symmetrically with a face of length L moves L / (2 sin(t/2)) along each edge."""
-    lengths = length if isinstance(length, (list, tuple)) else [length] * len(poly)
+    """Cut every corner symmetrically with a face of `length`: each corner of angle t moves
+    length / (2 sin(t/2)) along both of its edges."""
     out, n = [], len(poly)
     for i in range(n):
         prev, cur, nxt = poly[i - 1], poly[i], poly[(i + 1) % n]
-        if not lengths[i]:
-            out.append(cur); continue
         v1 = (prev[0] - cur[0], prev[1] - cur[1]); v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
         d1, d2 = math.hypot(*v1), math.hypot(*v2)
         angle = math.acos((v1[0] * v2[0] + v1[1] * v2[1]) / (d1 * d2))
-        leg = lengths[i] / (2 * math.sin(angle / 2))
-        out.append((cur[0] + v1[0] * leg / d1, cur[1] + v1[1] * leg / d1))
-        out.append((cur[0] + v2[0] * leg / d2, cur[1] + v2[1] * leg / d2))
+        leg = length / (2 * math.sin(angle / 2))
+        out += [(cur[0] + v1[0] * leg / d1, cur[1] + v1[1] * leg / d1),
+                (cur[0] + v2[0] * leg / d2, cur[1] + v2[1] * leg / d2)]
     return out
 
 
-def counters():
-    # Each counter is a triangle (a horizontal stroke, a 60° side and the centre line) with all
-    # three corners chamfered by faces of CHAMFER u: a six-sided counter. The 60° and 90° corners
-    # are cut symmetrically; the acute 30° corner (where the centre line meets the 60° side) is cut
-    # by a horizontal face, parallel to the strokes, so the centre line keeps a square end.
-    yb, yt, c = H - STROKE, STROKE, CHAMFER
-    depth = c * 7 / 4                          # a horizontal face of c u across the apex (7:4 side)
-    tri_l = [(LEFT_IN(yb), yb), (BAR[0], yb), (BAR[0], yt)]
-    left = chamfer(tri_l, [c, c, 0])
-    left = left[:-1] + [(BAR[0], yt + depth), (BAR[0] - c, yt + depth)]
-    tri_r = [(BAR[1], yb), (BAR[1], yt), (RIGHT_IN(yt), yt)]
-    right = chamfer(tri_r, [0, c, c])
-    right = [(BAR[1] + c, yb - depth), (BAR[1], yb - depth)] + right[1:]
-    return left, right
+def area(poly):
+    return sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(poly, poly[1:] + poly[:1])) / 2
 
 
-def svg(u, fg, bg, grid):
-    pad = 4 if grid else 2
-    vw, vh = (TOTAL_W + 2 * pad) * u, (H + 2 * pad) * u
-    left, right = counters()
-    d = rounded_path(chamfer(OUTER, OUTER_CHAMFERS), R_OUTER, u) + " " + rounded_path(left, R_OUTER, u) + " " + rounded_path(right, R_OUTER, u)
-    out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad * u} {-pad * u} {vw} {vh}">',
-           '<title>OpenDAP</title>']
-    if bg != "none":
-        out.append(f'<rect x="{-pad * u}" y="{-pad * u}" width="{vw}" height="{vh}" fill="{bg}"/>')
-    if grid:
-        g = []
-        for x in range(-pad, TOTAL_W + pad + 1):
-            g.append(f'<line x1="{x * u}" y1="{-pad * u}" x2="{x * u}" y2="{(H + pad) * u}"/>')
-        for y in range(-pad, H + pad + 1):
-            g.append(f'<line x1="{-pad * u}" y1="{y * u}" x2="{(TOTAL_W + pad) * u}" y2="{y * u}"/>')
-        out.append(f'<g stroke="#22272C" stroke-width="{u * 0.04}">' + "".join(g) + '</g>')
-        major = []
-        for x in range(0, TOTAL_W + 1, 7):
-            major.append(f'<line x1="{x * u}" y1="{-pad * u}" x2="{x * u}" y2="{(H + pad) * u}"/>')
-        for y in range(0, H + 1, 7):
-            major.append(f'<line x1="{-pad * u}" y1="{y * u}" x2="{(TOTAL_W + pad) * u}" y2="{y * u}"/>')
-        out.append(f'<g stroke="#3A4148" stroke-width="{u * 0.12}">' + "".join(major) + '</g>')
-    out.append(f'<path d="{d}" fill="{fg}" fill-rule="evenodd"{" opacity=\"0.85\"" if grid else ""}/>')
-    if grid:
-        par = " ".join(f"{x * u},{y * u}" for x, y in [(0, H), (W, H), (TOTAL_W, 0), (SLANT, 0)])
-        inn = " ".join(f"{x * u},{y * u}" for x, y in INNER)
-        out.append(f'<g fill="none" stroke="#FF6A2A" stroke-width="{u * 0.12}" stroke-dasharray="{u * 0.5},{u * 0.3}">'
-                   f'<polygon points="{par}"/><polygon points="{inn}"/></g>')
-        # 7:4 (60°) reference triangle at the bottom-left
-        out.append(f'<g fill="none" stroke="#69BFFF" stroke-width="{u * 0.12}">'
-                   f'<polyline points="0,{H * u} {CUT * u},{H * u} {CUT * u},{(H - STROKE) * u} 0,{H * u}"/></g>')
+def rounded(poly, r):
+    """Round every corner with a circular arc of radius r, drawn as one cubic Bézier per corner
+    (handle length 4/3 tan(phi/4) r, phi the turning angle). Returns segments for a closed path."""
+    segs, n = [], len(poly)
+    for i in range(n):
+        prev, cur, nxt = poly[i - 1], poly[i], poly[(i + 1) % n]
+        v1 = (prev[0] - cur[0], prev[1] - cur[1]); v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
+        d1, d2 = math.hypot(*v1), math.hypot(*v2)
+        u1, u2 = (v1[0] / d1, v1[1] / d1), (v2[0] / d2, v2[1] / d2)
+        angle = math.acos(max(-1.0, min(1.0, u1[0] * u2[0] + u1[1] * u2[1])))
+        t = min(r / math.tan(angle / 2), d1 / 2, d2 / 2)
+        h = 4 / 3 * math.tan((math.pi - angle) / 4) * t * math.tan(angle / 2)
+        a = (cur[0] + u1[0] * t, cur[1] + u1[1] * t); b = (cur[0] + u2[0] * t, cur[1] + u2[1] * t)
+        segs.append((a, (a[0] - u1[0] * h, a[1] - u1[1] * h), (b[0] - u2[0] * h, b[1] - u2[1] * h), b))
+    return segs
+
+
+def contours():
+    """The mark's four contours in grid units: each piece's outline (clockwise) and counter
+    (counter-clockwise). The O is the D turned 180°, lowered; the D is raised."""
+    outer, counter = chamfer(TRI, CHAMFER_OUTER), chamfer(COUNTER, CHAMFER)
+    d = lambda pts: [(x + DEPTH + GAP - APEX_IN, y) for x, y in pts]
+    o = lambda pts: [(DEPTH - APEX_IN - x, STEM - y + 2 * GAP) for x, y in pts]
+    out = []
+    for f in (o, d):
+        for pts, clockwise in ((f(outer), True), (f(counter), False)):
+            if (area(pts) > 0) != clockwise:       # y points down: positive area is clockwise
+                pts = pts[::-1]
+            out.append(rounded(pts, R))
+    return out
+
+
+def bezier_bounds(segs):
+    xs, ys = [], []
+    for p0, p1, p2, p3 in segs:
+        for t in [i / 64 for i in range(65)]:
+            m = 1 - t
+            xs.append(m**3 * p0[0] + 3 * m * m * t * p1[0] + 3 * m * t * t * p2[0] + t**3 * p3[0])
+            ys.append(m**3 * p0[1] + 3 * m * m * t * p1[1] + 3 * m * t * t * p2[1] + t**3 * p3[1])
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def path_data(cs, dx=0, dy=0, scale=1, digits=3):
+    f = lambda p: f"{round((p[0] - dx) * scale, digits):g} {round((p[1] - dy) * scale, digits):g}"
+    d = []
+    for segs in cs:
+        d.append(f"M{f(segs[-1][3])}")
+        for a, c1, c2, b in segs:
+            d.append(f"L{f(a)}C{f(c1)} {f(c2)} {f(b)}")
+        d.append("Z")
+    return "".join(d)
+
+
+def bounds(cs):
+    bs = [bezier_bounds(s) for s in cs]
+    return min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs)
+
+
+def svg(fill):
+    cs = contours()
+    x0, y0, x1, y1 = bounds(cs)
+    w, h = round(x1 - x0, 3), round(y1 - y0, 3)
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:g} {h:g}" role="img">'
+            f'<title>OpenDAP</title><path fill="{fill}" d="{path_data(cs, x0, y0)}"/></svg>\n')
+
+
+def construction(u=4):
+    """Construction drawing on the grid (a document, not a logo asset)."""
+    W, H, pad = 2 * (DEPTH - APEX_IN) + GAP, STEM + 2 * GAP, 21
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad * u} {-pad * u} {(W + 2 * pad) * u} {(H + 2 * pad) * u}">',
+           '<title>OpenDAP mark: construction</title>',
+           f'<rect x="{-pad * u}" y="{-pad * u}" width="{(W + 2 * pad) * u}" height="{(H + 2 * pad) * u}" fill="#111315"/>']
+    for step, colour, width in ((1, "#22272C", 0.04), (7, "#3A4148", 0.12)):
+        g = [f'<line x1="{x * u}" y1="{-pad * u}" x2="{x * u}" y2="{(H + pad) * u}"/>' for x in range(0, W + 1, step)]
+        g += [f'<line x1="{-pad * u}" y1="{y * u}" x2="{(W + pad) * u}" y2="{y * u}"/>' for y in range(0, H + 1, step)]
+        out.append(f'<g stroke="{colour}" stroke-width="{u * width}">' + "".join(g) + '</g>')
+    out.append(f'<path fill="#F5F6F4" opacity="0.85" d="{path_data(contours(), scale=u)}"/>')
+    pts = lambda ps: " ".join(f"{x * u},{y * u}" for x, y in ps)
+    frames = [lambda ps: [(DEPTH - APEX_IN - x, STEM - y + 2 * GAP) for x, y in ps],
+              lambda ps: [(x + DEPTH + GAP - APEX_IN, y) for x, y in ps]]
+    polys = "".join(f'<polygon points="{pts(f(p))}"/>' for f in frames for p in (TRI, COUNTER))
+    out.append(f'<g fill="none" stroke="#FF6A2A" stroke-width="{u * 0.12}" stroke-dasharray="{u * 0.5},{u * 0.3}">{polys}</g>')
+    x0 = DEPTH + GAP - APEX_IN
+    out.append(f'<polygon fill="none" stroke="#69BFFF" stroke-width="{u * 0.12}" points="{pts([(x0, 0), (x0 + 28, 16), (x0, 16)])}"/>')
     out.append('</svg>')
     return "\n".join(out) + "\n"
 
@@ -144,9 +134,7 @@ def svg(u, fg, bg, grid):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
-    ap.add_argument("--unit", type=float, default=10, help="pixels per grid unit")
-    ap.add_argument("--fg", default="#F5F6F4")
-    ap.add_argument("--bg", default="none")
-    ap.add_argument("--grid", action="store_true", help="draw the construction grid")
+    ap.add_argument("--fill", default="#F5F6F4")
+    ap.add_argument("--grid", action="store_true", help="write the construction drawing instead")
     a = ap.parse_args()
-    open(a.out, "w").write(svg(a.unit, a.fg, a.bg, a.grid))
+    open(a.out, "w").write(construction() if a.grid else svg(a.fill))

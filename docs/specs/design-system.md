@@ -81,11 +81,17 @@ The design language draws on:
 
 The target: precision without aggression, sophistication without complexity, technology without intimidation.
 
-### Brand mark (Draft)
+### 2.3 Mark and logo
 
-A lying rhomboid outline with horizontal top and bottom edges and sides rising at 60°, a vertical centre line, and two six-sided counters, built on a 1:1 grid with industrial angles; chamfered corners, the counters' acute corners cut by horizontal faces, and a small, uniform corner radius. The outline reads as the **O** and, with the line, the **D** of OpenDAP. Drafts and the parametric generator are in [`brand/`](../../brand/README.md); proportions are to be confirmed.
+The mark is two identical triangular pieces: the **O** pointing left (◁) and the **D** pointing right (▷), their stems facing each other half a stroke apart, offset diagonally by one stroke. It is built on a 1:1 grid with industrial angles, a 28 u stroke as the module, one symmetric chamfer per corner (16 u outside, 8 u in the triangular counters) and a uniform 2 u corner radius. The wordmark is **OpenDAP** in IBM Plex Sans SemiBold (§9), converted to outlines.
 
-**Option B** (approved): two identical triangular pieces built on the same grid, stroke and chamfer family, the **O** pointing left and the **D** pointing right, their stems facing each other half a stroke apart and offset diagonally by one stroke. Each corner, outside and in the triangular counters, carries one symmetric chamfer relative to the triangle. Construction in [`brand/`](../../brand/README.md#option-b).
+- **Forms:** the mark alone; the wordmark alone, the logo for horizontal spaces (the mark never sits beside it); the vertical lockup, mark above wordmark, for square or tall spaces.
+- **Colours:** light (`color.white`) on graphite, the default; dark (`color.graphite.950`) on light surfaces and on an orange fill; the orange accent for the mark alone, on graphite only; `currentColor` for inline use. One colour per logo, at least 3 : 1 against its background.
+- **Clear space:** three strokes on every side of the mark or the vertical lockup (about 0.4 of the mark's height); the cap height around the wordmark.
+- **Minimum size (screen, 1×):** mark 16 px (24 px recommended), wordmark 16 px, vertical lockup 48 px.
+- **Never** stretch, rotate, mirror, recolour or rebuild it, or move its pieces.
+
+The construction, the files (flat SVGs: one path, no transforms, strokes, arcs or text), the full usage rules and the generators are in [`brand/`](../../brand/README.md). Status: approved by the maintainers on 2026-10-22.
 
 ## 3. Colour
 

@@ -1,50 +1,112 @@
-# Brand mark (Draft)
+# Brand mark and logo
 
-The OpenDAP mark: a lying rhomboid outline with horizontal top and bottom edges and sides rising at 60°, its two acute corners cut, a thick stroke that grows inward (no fill), and a vertical centre line of the same weight. The outline reads as the **O** and, with the line, the **D** of OpenDAP.
+The OpenDAP mark is two identical triangular pieces: the **O** pointing left (◁) and the **D** pointing right (▷), their stems facing each other, the O lower and the D higher. The wordmark **OpenDAP** is the logo for horizontal spaces; the vertical lockup pairs the two.
+
+Use the files in [`svg/`](svg/); never redraw them. See the [design system](../docs/specs/design-system.md), §2.
+
+## Files
+
+Every SVG in `svg/` is `opendap-<form>-<colour>.svg`.
+
+| Form | Use |
+|---|---|
+| `mark` | The symbol alone: favicons, app and device icons, small spaces, and wherever the name is already present |
+| `wordmark` | The name alone: the logo for horizontal spaces (headers, banners, documents). The mark never sits beside it |
+| `vertical` | Mark above the wordmark, for square or tall spaces |
+
+| Colour | Fill | Use |
+|---|---|---|
+| `light` | `#F5F6F4` (`color.white`) | On graphite and other dark surfaces: the default |
+| `dark` | `#111315` (`color.graphite.950`) | On light surfaces, and on an orange fill |
+| `accent` | `#FF6A2A` (`color.orange.500`) | The mark alone, on graphite only |
+| `current` | `currentColor` | Inline in a UI or web page, taking the text colour; as an `<img>` it renders black |
+
+The SVGs are flat, so they scale and convert without distortion:
+
+- One filled `<path>` per file, in absolute coordinates; no transforms, groups, strokes, text, styles, masks or metadata.
+- Corners are cubic Béziers, never arcs, so tools with poor arc support (cutters, engravers, PCB and font tools) read them correctly.
+- Outer contours run clockwise and counters counter-clockwise: the shape is the same under either fill rule.
+- The `viewBox` is fitted to the ink, with its origin at 0,0: the file's box is the logo's box, and clear space is added around it, never inside it.
+- The wordmark is converted to outlines: no font is needed to display it.
+
+`opendap-mark-construction.svg` is the construction drawing: a document, not a logo asset.
 
 ## Construction on a 1:1 grid
 
-Grid unit u; major grid every 7 u. Every value is either a grid integer or a simple ratio of the stroke (28 u).
-
-| Element | Value | Why |
-|---|---|---|
-| Proportions | Stroke : counter : stroke = 4 : 7 : 4 (28 : 49 : 28 u); height 105 u | The stroke is 4/15 of the height: heavy, with open counters |
-| Overall | 180 u × 105 u = 12 : 7 | Follows from the triangular counters |
-| Angles | 0°, 90° and 60° | Industrial (set-square) angles. The sides rise 7 u per 4 u across (60.26°), the grid-exact approximation of 60° (within 0.3°) |
-| 60° sides | 32 u measured horizontally = 8/7 of the stroke (27.8 u perpendicular) | Optically equal to the base stroke, and it keeps the inner contour on the grid |
-| Centre line | x = 76–104 u, exactly vertical, centred on the 180 u width | Placed by the triangular counters: it meets each side's inner contour at the counter's tip |
-| Counters | Triangles bounded by a horizontal stroke, a 60° side and the centre line, chamfered into six sides | The O and the D read through the outline and the line |
-| Counter chamfers | Faces of 8 u (2/7 of the stroke). The 60° and 90° corners are cut symmetrically. The acute corner is cut by a horizontal face, parallel to the strokes, half a stroke (14 u) from the corner | The horizontal cut gives the centre line a square end, so it reads as vertical among the diagonals; 8 u is the face that puts that cut exactly half a stroke from the corner |
-| Acute outer corners | Cut vertically at x = 16 u (4/7 of the stroke), the side's grid point one stroke above the corner; each cut is 28 u long | One stroke long; echoes the centre line |
-| Outer chamfers | Faces of 16 u (twice the counters', equal to the cut offset) where the outline meets a horizontal edge; none where a vertical cut meets a 60° side | One family of chamfers in a 2 : 1 ratio; a chamfer next to the rising sides would blur them |
-| Corner rounding | Every corner, outer and inner, by a true circular arc of 2 u (1/14 of the stroke) | The same small curve at every corner, whatever its angle |
-
-The outer contour and the counters' horizontal and vertical edges fall on the grid; chamfer points on the 60° sides are set by the face lengths.
-
-## Option B
-
-Two identical triangular pieces: the **O** pointing left (◁) and the **D** pointing right (▷), their stems facing each other, the O lower and the D higher. Built on the same grid with the same stroke, chamfers and rounding as the mark above, and the same rules turned 90°.
+Grid unit u; major grid every 7 u. The stroke (28 u) is the module: every measure is a grid integer or a simple ratio of it.
 
 | Element | Value | Why |
 |---|---|---|
 | Piece | A triangle with a vertical stem 192 u long and its apex 168 u away | The D; the O is the same piece turned 180° |
-| Angles | 0°, 90° and the sides at 4 u down per 7 u across (29.74°) | The main mark's 7:4 side turned 90°, so every vertex stays on the grid |
-| Strokes | Stem 28 u; sloped sides 32 u measured vertically (8/7 of the stroke) | The main mark's stroke and side rule |
+| Angles | 0°, 90° and the sides at 4 u down per 7 u across (29.74°) | Industrial angles on the grid: every vertex falls on it |
+| Strokes | Stem 28 u; sloped sides 32 u measured vertically (8/7 of the stroke, 27.8 u perpendicular) | Optically equal strokes, with the inner contour on the grid |
 | Counter | The triangle parallel to the outline, vertices (28, 48), (112, 96), (28, 144) | Its three corners are close to 60°, so it reads as a clean triangle |
-| Chamfers | One per corner, symmetric, its face perpendicular to the corner's bisector: 16 u outside, 8 u in the counter. The apex face is vertical, 14 u in from the tip | Relative to the triangle, not to the page; the main mark's 2 : 1 chamfer family |
-| Corner rounding | Every corner by a true circular arc of 2 u | As the main mark |
+| Chamfers | One per corner, symmetric, its face perpendicular to the corner's bisector: 16 u outside, 8 u in the counter. The apex face is vertical, 14 u in from the tip | Relative to the triangle, not to the page; one chamfer family in a 2 : 1 ratio |
+| Corner rounding | Every corner by a circular arc of 2 u (1/14 of the stroke) | The same small curve at every corner |
 | Layout | The stems 14 u apart (half a stroke); the O 14 u lower and the D 14 u higher than centred, one stroke apart | Half-stroke spacing |
-| Overall | 322 u × 220 u between the apex faces and the triangles' stem corners | Each triangle 168 u × 192 u |
+| Overall | Ink 322 u × 203.6 u; 322 u × 220 u between the apex faces and the triangles' stem corners | Each triangle 168 u × 192 u |
 
 The triangles' vertices, the counters' vertices and the apex faces fall on the grid; the other chamfer points are set by the face lengths.
 
-## Files
+## Wordmark and lockup
 
-- `mark.py`: generates the mark from this construction; `--grid` draws the construction drawing. `STROKE`, `COUNTER` and `CHAMFER` set the construction; the rest is derived from them.
-- `opendap-mark.svg`: the mark, light on transparent.
-- `opendap-mark-accent.svg`: the mark in the brand orange.
-- `opendap-mark-construction.svg`: on the grid, with the construction lines.
-- `mark_b.py`: generates option B from the main mark's constants; `--grid` draws its construction drawing.
-- `opendap-mark-b.svg`, `opendap-mark-b-accent.svg`, `opendap-mark-b-construction.svg`: option B, as above.
+| Element | Value |
+|---|---|
+| Wordmark | **OpenDAP**, written exactly so (capital O, D, A, P), in IBM Plex Sans SemiBold, the interface typeface (design system §9), with its own kerning and no added tracking |
+| Vertical lockup | Cap height 70 u (2.5 strokes); the wordmark centred 42 u (1.5 strokes) under the mark |
+| Horizontal | No lockup: in horizontal spaces the wordmark stands alone |
 
-Status: Draft. Usage rules (clear space, minimum size, colours) follow once the shape is final. See the [design system](../docs/specs/design-system.md), §2.
+In the vertical lockup, the mark and the wordmark keep these proportions: never resize or move one against the other, and never set the mark beside the wordmark.
+
+## Clear space
+
+Nothing else (text, images, edges, other logos) enters the clear space around the ink:
+
+- **Mark and vertical lockup:** three strokes on every side, 84 u at the files' scale, about 0.4 of the mark's height.
+- **Wordmark:** its cap height (the height of the D) on every side.
+
+## Minimum size
+
+Checked in Chrome at 1× pixel density (2026-10-22):
+
+| Form | Screen (height, 1×) | Print (height) |
+|---|---|---|
+| `mark` | 16 px; 24 px recommended | 5 mm |
+| `vertical` | 48 px | 15 mm |
+| `wordmark` | 16 px | 4 mm |
+
+The print values keep the wordmark's cap height at 3 mm or more. At 16 px the gap between the pieces is about one pixel: below it, the pieces merge. In any physical process (print, engraving, silkscreen, moulding), the gap, 6.9 % of the mark's height, must stay at or above the process's minimum feature, and the counters must stay open. The print values assume a 0.3 mm minimum feature and are **UNVERIFIED** until a first print run.
+
+## Colour and backgrounds
+
+| Logo | Allowed backgrounds | Contrast (WCAG 2) |
+|---|---|---|
+| `light` | `graphite.950` to `graphite.800`; dark photos or plasma areas at least as dark | 17.2 to 12.6 on the graphite surfaces |
+| `dark` | `color.white` and light surfaces; the orange fill `orange.500` | 17.2 on white; 6.5 on orange |
+| `accent` (mark only) | `graphite.950` to `graphite.850` | 6.5 to 5.5 |
+
+- At least 3 : 1 against the background everywhere the logo sits (WCAG 1.4.11, graphical objects).
+- Orange on a light surface is not allowed (2.6 : 1), and the wordmark is never orange.
+- One colour per logo: the mark and the wordmark always share it.
+- On plasma (design system §4), only over an area that keeps 3 : 1, never over the bright core.
+
+## Never
+
+- Stretch, skew, rotate or mirror the logo. Mirroring swaps the O and the D.
+- Move, resize, separate or realign the pieces, or change the gap or the offset between them.
+- Add an outline, a stroke, a shadow, a glow, a gradient or plasma inside the logo.
+- Recolour it outside the four colours above, or use two colours in one logo.
+- Retype the wordmark, set it in another typeface or weight, or use live text in place of the outlines.
+- Place it in a container or next to anything that enters its clear space.
+- Use the archived [option A](archive/option-a/README.md).
+
+## Generators
+
+- `mark.py`: the mark from the construction above. `mark.py OUT.svg [--fill …]` writes one mark; `--grid` writes the construction drawing.
+- `logo.py`: every file in `svg/` and the construction drawing. It needs fontTools, uharfbuzz and IBM Plex Sans SemiBold (SIL OFL 1.1) from [IBM/plex](https://github.com/IBM/plex) (`ibm-plex-sans`, `fonts/complete/otf`); the font is not stored here:
+
+  ```sh
+  python3 logo.py --font IBMPlexSans-SemiBold.otf
+  ```
+
+Status: approved by the maintainers on 2026-10-22. The print minimum sizes stay **UNVERIFIED** until a first print run.
