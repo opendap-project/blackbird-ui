@@ -85,6 +85,8 @@ The target: precision without aggression, sophistication without complexity, tec
 
 A lying rhomboid outline with horizontal top and bottom edges and sides rising at 60°, a vertical centre line, and two six-sided counters, built on a 1:1 grid with industrial angles; chamfered corners, the counters' acute corners cut by horizontal faces, and a small, uniform corner radius. The outline reads as the **O** and, with the line, the **D** of OpenDAP. Drafts and the parametric generator are in [`brand/`](../../brand/README.md); proportions are to be confirmed.
 
+**Option B** (approved): two identical triangular pieces built on the same grid, stroke and chamfer family, the **O** pointing left and the **D** pointing right, their stems facing each other half a stroke apart and offset diagonally by one stroke. Each corner, outside and in the triangular counters, carries one symmetric chamfer relative to the triangle. Construction in [`brand/`](../../brand/README.md#option-b).
+
 ## 3. Colour
 
 The palette is graphite, white and one restrained orange accent. Plasma colours add a wider spectrum only where they serve a specific purpose (§4).

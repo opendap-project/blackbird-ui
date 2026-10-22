@@ -21,11 +21,30 @@ Grid unit u; major grid every 7 u. Every value is either a grid integer or a sim
 
 The outer contour and the counters' horizontal and vertical edges fall on the grid; chamfer points on the 60° sides are set by the face lengths.
 
+## Option B
+
+Two identical triangular pieces: the **O** pointing left (◁) and the **D** pointing right (▷), their stems facing each other, the O lower and the D higher. Built on the same grid with the same stroke, chamfers and rounding as the mark above, and the same rules turned 90°.
+
+| Element | Value | Why |
+|---|---|---|
+| Piece | A triangle with a vertical stem 192 u long and its apex 168 u away | The D; the O is the same piece turned 180° |
+| Angles | 0°, 90° and the sides at 4 u down per 7 u across (29.74°) | The main mark's 7:4 side turned 90°, so every vertex stays on the grid |
+| Strokes | Stem 28 u; sloped sides 32 u measured vertically (8/7 of the stroke) | The main mark's stroke and side rule |
+| Counter | The triangle parallel to the outline, vertices (28, 48), (112, 96), (28, 144) | Its three corners are close to 60°, so it reads as a clean triangle |
+| Chamfers | One per corner, symmetric, its face perpendicular to the corner's bisector: 16 u outside, 8 u in the counter. The apex face is vertical, 14 u in from the tip | Relative to the triangle, not to the page; the main mark's 2 : 1 chamfer family |
+| Corner rounding | Every corner by a true circular arc of 2 u | As the main mark |
+| Layout | The stems 14 u apart (half a stroke); the O 14 u lower and the D 14 u higher than centred, one stroke apart | Half-stroke spacing |
+| Overall | 322 u × 220 u between the apex faces and the triangles' stem corners | Each triangle 168 u × 192 u |
+
+The triangles' vertices, the counters' vertices and the apex faces fall on the grid; the other chamfer points are set by the face lengths.
+
 ## Files
 
 - `mark.py`: generates the mark from this construction; `--grid` draws the construction drawing. `STROKE`, `COUNTER` and `CHAMFER` set the construction; the rest is derived from them.
 - `opendap-mark.svg`: the mark, light on transparent.
 - `opendap-mark-accent.svg`: the mark in the brand orange.
 - `opendap-mark-construction.svg`: on the grid, with the construction lines.
+- `mark_b.py`: generates option B from the main mark's constants; `--grid` draws its construction drawing.
+- `opendap-mark-b.svg`, `opendap-mark-b-accent.svg`, `opendap-mark-b-construction.svg`: option B, as above.
 
 Status: Draft. Usage rules (clear space, minimum size, colours) follow once the shape is final. See the [design system](../docs/specs/design-system.md), §2.
