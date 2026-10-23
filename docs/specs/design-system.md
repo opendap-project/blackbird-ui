@@ -293,7 +293,7 @@ Seen from the front:
 - **Left edge, top: Action** (T1-014, T1-022). A round disc, subtly concave, with deeper travel and a clearer click. It is the main action button and the only control in the orange brand accent.
 - **Left edge, below Action: Volume + and Volume −.** Two half-capsules: together they form one capsule split across the middle, each half with a rounded outer end and a flat inner edge at the split, operated as two separate buttons. Not a rocker. This pair is the reference instance of the **button group** pattern (§15.1).
 - **Right edge: Main (power)** (T1-015). A taller capsule with horizontal ribs, so it is identified by touch.
-- Everything is graphite except Action.
+- Volume + / − and Main are silver-finished plastic: a metallic silver paint under a satin clear coat on the polymer cap, with the + and − reliefs in graphite (maintainers, 2026-10-23). Action stays in the orange accent; the body stays graphite.
 
 On screen, the same hierarchy holds: one primary action per screen carries the orange emphasis, and button groups use the same segmented capsule (§15).
 
