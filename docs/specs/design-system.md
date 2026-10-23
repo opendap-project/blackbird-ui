@@ -646,7 +646,7 @@ Each job has its control (DS-018); they are not interchangeable:
 
 ### 15.3 Icons
 
-- **Set:** IBM Carbon icons (Apache-2.0), drawn to match IBM Plex: 32 px grid, 2 px stroke, square caps. Missing glyphs (album, lyrics) are drawn in the same grammar; Material Symbols (Apache-2.0) is the fallback. The licence is kept per file under REUSE (DS-019).
+- **Set: OpenDAP Icons** ([`icons/`](../../icons/), DS-021). OpenDAP's own library, in IBM Carbon's grammar (drawn for IBM Plex: 2 px stroke, square caps, miter joins), redrawn natively on a 24 px grid with whole-pixel strokes, plus a 16 px status-bar set. Names are semantic, so themes (SYS-030) and derivatives (OS-028) can redraw any icon without touching code. The [preview](../../renders/web/icons.html) shows every icon at its sizes (DS-019).
 - **Sizes:** status bar 15–16 px (2.3–2.4 mm); beside text 16–20 px; header actions and secondary transport 24 px (3.7 mm); primary transport 28–32 px (4.3–4.9 mm). Every interactive icon sits in a hit area of at least 48 px.
 - **Strokes in whole pixels** (2 px at 24 and 32); a scaled master that lands on 1.25 or 1.5 px is redrawn, not shipped.
 - **Filled** glyphs for learned, stateful controls (play/pause, favourite on); outline for the rest.

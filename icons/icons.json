@@ -1,0 +1,653 @@
+{
+  "schema": "opendap.icons/v1",
+  "icons": [
+    {
+      "name": "play",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Play"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "pause",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Pause"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "previous",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Previous"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "next",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Next"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "stop",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Stop"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "shuffle",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Shuffle"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "repeat",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Repeat"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "repeat-one",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Repeat one"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "back-15",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Back 15 seconds"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "forward-30",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Forward 30 seconds"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "eject",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Eject"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "album",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Album"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "artist",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Artist"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "song",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Song"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "playlist",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Playlist"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "queue",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Queue"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "folder",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Folder"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "podcast",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Podcast"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "audiobook",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Audiobook"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "recording",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Recording"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "lyrics",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Lyrics"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "like",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Like"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "like-filled",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Liked"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "volume",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Volume"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "volume-muted",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Muted"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "headphones",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Headphones"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "output-jack",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Headphone output"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "output-balanced",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Balanced output"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "speaker",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Speaker"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "signal-path",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Signal path"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "dac",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "DAC"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "tone",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Tone"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "compare",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Compare"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "hearing",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Hearing"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "profile",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Profile"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "devices",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Play on"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "this-device",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "This T1"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "bluetooth",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Bluetooth"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "wifi",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Wi-Fi"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "usb",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "USB"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "pair",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Pair"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "sync",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Sync"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "hat",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "HAT"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "battery",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Battery"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "storage",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Storage"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "power",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Power"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "restart",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Restart"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "lock",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Lock"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "brightness",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Brightness"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "sleep",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Sleep timer"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "update",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Software update"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "back",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Back"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "forward",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Forward"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "down",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Down"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "up",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Up"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "search",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Search"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "add",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Add"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "close",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Close"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "done",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Done"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "more",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "More"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "reorder",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Reorder"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "delete",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Delete"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "undo",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Undo"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "waiting",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Waiting"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "error",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Error"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "warning",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Warning"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "info",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Information"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "status-microsd",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "microSD card"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "status-volume",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Volume"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "status-bluetooth",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Bluetooth"
+      },
+      "style": "outline"
+    },
+    {
+      "name": "status-wifi",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Wi-Fi"
+      },
+      "style": "filled"
+    },
+    {
+      "name": "status-battery",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Battery"
+      },
+      "style": "filled"
+    }
+  ]
+}
