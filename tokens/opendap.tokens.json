@@ -1,6 +1,6 @@
 {
   "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
-  "$description": "OpenDAP design system tokens, official theme. Draft (2026-10-22): starting values from the maintainers' design direction, to be validated on the prototype display. Spec: docs/specs/design-system.md. Slint and CSS outputs are generated from this file.",
+  "$description": "Engineered Matter (the OpenDAP design system) tokens, official theme. Draft (2026-10-22): starting values from the maintainers' design direction, to be validated on the prototype display. Spec: docs/specs/design-system.md. Slint and CSS outputs are generated from this file.",
   "$extensions": {
     "org.opendap.theme": {
       "id": "opendap-official",

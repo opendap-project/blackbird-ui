@@ -1,4 +1,6 @@
-# OpenDAP design system
+# Engineered Matter — Design System
+
+Engineered Matter is the name of OpenDAP's design system (maintainers, 2026-10-23).
 
 - **Status:** Draft. This is the maintainers' design direction (2026-10-22). Values are starting points: colours, sizes and timings are to be validated on the first prototype's display and hardware.
 - **Date:** 2026-10-22
