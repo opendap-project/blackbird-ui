@@ -320,15 +320,20 @@ Every screen has a **primary** level (the current task or the most important inf
 
 ### 8.3 Touch targets
 
-Sized in millimetres on the real panel, then converted to pixels (§18.2):
+The T1's panel has the original iPhone's size and density (320 × 480 at about 166 ppi), so a phone layout cannot be shrunk onto it: targets are sized in millimetres for one-handed thumb use (DS-014). Evidence and sources: [buttons, gestures and touch on a small screen](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-controls-gestures-small-screen.md).
 
 | Target | Minimum | On the T1 panel (166 ppi) |
 |---|---|---|
-| Any touch target | 6.7 mm | 44 × 44 px |
 | Primary action (one per screen, for example play/pause) | 9.8 mm | 64 × 64 px (`size.target-primary`) |
 | Frequent actions (skip, back, like) | 7.9 mm | 52 × 52 px (`size.target-frequent`) |
-| Gap between destructive or mutually exclusive actions | 1.2 mm | 8 px (`space.2`) |
+| Any other touch target | 7.4 mm | 48 × 48 px (`size.target-min`) |
+| Gap between hit areas | 1.2 mm | 8 px (`space.target-gap`); hit areas never overlap |
+| Gap between destructive or opposite actions | 2.5 mm | 16 px (`space.4`) |
 | On-screen keyboard keys (documented exception) | 4.9 mm wide, 7.0 mm tall | 32 × 46 px, with long-press alternates and hit-target correction |
+
+- A hit area may be larger than the drawn control; status-bar icons are not targets of their own.
+- At most five targets in a row (five 52 px targets fill the 272 px content width).
+- Primary and frequent actions sit in the lower half, where the thumb rests; the top holds what is used least, and each of those has a gesture too (§8.5).
 
 For physical controls, evaluate actual size, finger clearance, reach and tactile discrimination rather than applying pixel targets.
 
@@ -344,6 +349,22 @@ Every interaction gets immediate, unambiguous feedback within the [experience bu
 - what the screen shows always matches what the device is doing (T1-057).
 
 Animation clarifies a change of state; it never decorates every interaction.
+
+### 8.5 Gestures
+
+Gesture navigation is supported on touch faceplates (SYS-039); it follows Android's model where it fits, and uses the bottom edge for "more" because the T1 has no phone home screen (§8.1).
+
+| Gesture | Action |
+|---|---|
+| Swipe in from the leading edge (left; right in RTL) | Back |
+| Swipe in from the trailing edge | The screen's companion screen, entering from that side: from Now Playing, the queue |
+| Swipe up from the bottom | More of the current screen; on Now Playing, the signal path and technical details, lyrics, credits |
+| Swipe down from the status bar | Notifications and quick settings |
+| Swipe down on Now Playing | Minimise the player |
+
+- Edge zones are 20 px (3 mm) wide. Controls that are dragged (the seek bar, sliders, horizontal lists) exclude their area from the side zones, and exclusions stay small.
+- Every gesture has a visible single-tap alternative (back control, chevron, queue control, a "more" control, the status bar), as WCAG 2.2 requires for path gestures and dragging (2.5.1, 2.5.7).
+- Non-touch faceplates navigate with HID keys (§13); gestures are never the only way.
 
 ## 9. Typography
 
@@ -596,7 +617,7 @@ How this design direction fits the decisions already taken.
 
 ### 18.2 The display: 320 × 480 at about 166 ppi
 
-- The touch faceplate's panel is 3.5", 320 × 480 portrait, active area 48.96 × 73.44 mm, about 166 ppi ([faceplate-touch ADR 0001](https://github.com/opendap-project/faceplate-touch/blob/main/docs/adr/0001-focus-lcds-e35gh-display.md); [i18n research](https://github.com/opendap-project/system/blob/main/docs/research/2026-10-text-input-and-i18n.md) §6). One pixel is 0.153 mm, so 44 px ≈ 6.7 mm.
+- The touch faceplate's panel is 3.5", 320 × 480 portrait, active area 48.96 × 73.44 mm, about 166 ppi ([faceplate-touch ADR 0001](https://github.com/opendap-project/faceplate-touch/blob/main/docs/adr/0001-focus-lcds-e35gh-display.md); [i18n research](https://github.com/opendap-project/system/blob/main/docs/research/2026-10-text-input-and-i18n.md) §6). One pixel is 0.153 mm, so 48 px ≈ 7.4 mm.
 - Token pixels are panel pixels on the T1: one logical pixel per physical pixel (a scale factor of 1). On Desktop and the web, CSS pixels follow the host's scaling, so the same token is physically larger there.
 - Minimum targets are defined in millimetres (§8.3). The on-screen keyboard's 32 px keys (4.9 mm) are the documented exception, compensated by 46 px rows, long-press alternates and hit-target correction.
 - Faceplates are interchangeable: other panels convert the same millimetre minimums at their own density.
@@ -636,7 +657,8 @@ DS-002 to DS-005 (withdrawn requirements adopted from earlier experiments: Plex 
 - [ ] The main action is easy to find and operate; the round, concave Action button keeps its geometry and the accent.
 - [ ] Volume + / − are two half-capsules of one split capsule; Main is the ribbed capsule; physical controls are distinguishable by touch.
 - [ ] Every button group, physical or digital, uses the segmented capsule (§15.1).
-- [ ] Touch targets meet the millimetre minimums on the real panel.
+- [ ] Touch targets and gaps meet the millimetre minimums on the real panel (§8.3).
+- [ ] Every gesture has a single-tap alternative, and draggable controls near an edge exclude their area (§8.5).
 
 ### Plasma and thermal
 
@@ -669,7 +691,8 @@ Decided on 2026-10-22 (under the maintainers' delegation):
 Decided on 2026-10-23 (under the maintainers' delegation):
 
 - **Type scale.** Seven sizes from 11 to 32 px with their line heights (§9.3); 11 px is the minimum.
-- **Primary target size.** 9.8 mm (64 px) for the screen's primary action, 7.9 mm (52 px) for frequent actions, 6.7 mm (44 px) minimum for everything else (§8.3).
+- **Target sizes.** 9.8 mm (64 px) for the screen's primary action, 7.9 mm (52 px) for frequent actions, 7.4 mm (48 px) for any other target, 1.2 mm (8 px) between hit areas (§8.3).
+- **Gestures.** Back from the leading edge, the companion screen from the trailing edge, more from the bottom, notifications from the status bar (§8.5).
 - **Fonts.** IBM Plex Sans SC for Chinese, shipped complete; Western digits in Plex Mono for technical values in every locale (§9.4).
 - **Scale factor.** One token pixel is one panel pixel on the T1 (§18.2).
 - **Orange validation method.** The physical Action part matches `orange.500` when its colour, measured with a spectrophotometer under D65, is within ΔE00 2.0 of `#FF6A2A` in CIELAB; the same check applies to every edition.

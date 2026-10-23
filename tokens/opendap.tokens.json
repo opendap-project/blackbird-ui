@@ -490,6 +490,13 @@
         "unit": "px"
       },
       "$description": "Gap between segments of a button group when a gap is used instead of a divider"
+    },
+    "target-gap": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      },
+      "$description": "Minimum gap between touch hit areas: 1.2 mm on the T1 panel"
     }
   },
   "size": {
@@ -503,10 +510,10 @@
     },
     "target-min": {
       "$value": {
-        "value": 44,
+        "value": 48,
         "unit": "px"
       },
-      "$description": "Minimum touch target: 6.7 mm on the T1 panel. The on-screen keyboard (32 x 46 px keys) is a documented exception"
+      "$description": "Minimum touch target: 7.4 mm on the T1 panel. The on-screen keyboard (32 x 46 px keys) is a documented exception"
     },
     "target-primary": {
       "$value": {

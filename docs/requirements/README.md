@@ -17,9 +17,11 @@ Requirements for the official UI components and design system of Blackbird OS.
 | DS-011 | Typography shall define its roles (interface, technical values) and cover the scripts of every shipped language, starting with Latin, Han, Devanagari and Arabic (SYS-028), with right-to-left mirroring. | must | Confirmed |
 | DS-012 | Motion shall respect the reduce-motion setting: animation is replaced by a static state, never by the loss of the feedback it carried. | must | Confirmed |
 | DS-013 | Button groups, physical and digital, shall use the segmented-capsule pattern: one capsule split into segments with rounded outer ends and flat inner edges. | must | Confirmed |
+| DS-014 | Touch targets, spacing and layout shall be sized in millimetres for the T1's 3.5" panel and one-handed thumb use, not scaled from a phone layout. | must | Confirmed |
 
 ## Context
 
+- DS-014 (maintainers, 2026-10-23): a 3.5" screen is not a phone; the values are in the design system §8.3, from the [small-screen research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-controls-gestures-small-screen.md).
 - DS-002 to DS-005: Adopted from the earlier experiments on 2026-10-21 as **Draft**: consistent with the decisions already taken and with the product philosophy, pending the maintainers' confirmation. Part availability still has to be checked against the sourcing rule (T1-010).
 - Withdrawn on 2026-10-21 after the [experiment review](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-experiment-review.md): DS-002, DS-003, DS-004, DS-005.
 - DS-002 to DS-005 are superseded by the [design system spec](../specs/design-system.md) (2026-10-22), written from the maintainers' design direction: graphite, white and one orange accent; IBM Plex Sans and Mono with script companions; the 320 × 480 touch panel.
