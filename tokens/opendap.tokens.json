@@ -357,25 +357,25 @@
       },
       "body-large": {
         "$value": {
-          "value": 16,
+          "value": 17,
           "unit": "px"
         }
       },
       "body": {
         "$value": {
-          "value": 14,
+          "value": 15,
           "unit": "px"
         }
       },
       "label": {
         "$value": {
-          "value": 12,
+          "value": 13,
           "unit": "px"
         }
       },
       "caption": {
         "$value": {
-          "value": 11,
+          "value": 12,
           "unit": "px"
         },
         "$description": "The minimum text size"
@@ -385,43 +385,43 @@
       "$type": "dimension",
       "display": {
         "$value": {
-          "value": 38,
+          "value": 40,
           "unit": "px"
         }
       },
       "headline": {
         "$value": {
-          "value": 30,
+          "value": 32,
           "unit": "px"
         }
       },
       "title": {
         "$value": {
-          "value": 26,
+          "value": 28,
           "unit": "px"
         }
       },
       "body-large": {
         "$value": {
-          "value": 22,
+          "value": 24,
           "unit": "px"
         }
       },
       "body": {
         "$value": {
-          "value": 20,
+          "value": 22,
           "unit": "px"
         }
       },
       "label": {
         "$value": {
-          "value": 16,
+          "value": 18,
           "unit": "px"
         }
       },
       "caption": {
         "$value": {
-          "value": 14,
+          "value": 16,
           "unit": "px"
         }
       }
@@ -497,6 +497,34 @@
         "unit": "px"
       },
       "$description": "Minimum gap between touch hit areas: 1.2 mm on the T1 panel"
+    },
+    "margin": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$description": "Side margin of the T1 screen (2.4 mm), design system §8.3"
+    },
+    "unit": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      },
+      "$description": "Space within one unit (title and artist, label and value), §10.1"
+    },
+    "group": {
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      },
+      "$description": "Space within a group, §10.1"
+    },
+    "section": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      },
+      "$description": "Space between groups, §10.1"
     }
   },
   "size": {
@@ -528,6 +556,20 @@
         "unit": "px"
       },
       "$description": "Frequent actions (skip, back, like): 7.9 mm on the T1 panel"
+    },
+    "row": {
+      "$value": {
+        "value": 52,
+        "unit": "px"
+      },
+      "$description": "One-line list row, §8.3"
+    },
+    "row-two": {
+      "$value": {
+        "value": 60,
+        "unit": "px"
+      },
+      "$description": "Two-line list row, §8.3"
     }
   },
   "radius": {

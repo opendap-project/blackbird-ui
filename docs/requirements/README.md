@@ -18,9 +18,16 @@ Requirements for the official UI components and design system of Blackbird OS.
 | DS-012 | Motion shall respect the reduce-motion setting: animation is replaced by a static state, never by the loss of the feedback it carried. | must | Confirmed |
 | DS-013 | Button groups, physical and digital, shall use the segmented-capsule pattern: one capsule split into segments with rounded outer ends and flat inner edges. | must | Confirmed |
 | DS-014 | Touch targets, spacing and layout shall be sized in millimetres for the T1's 3.5" panel and one-handed thumb use, not scaled from a phone layout. | must | Confirmed |
+| DS-015 | The type scale shall be sized for a 35 cm reading distance: text that must be read meets 16 minutes of arc of cap height at that distance, and nothing is smaller than the `caption` role. | must | Confirmed |
+| DS-016 | Each shipped script shall have its own minimum sizes and line heights, as per-locale tokens. | must | Confirmed |
+| DS-017 | Layouts shall use the T1's side margin and space elements by proximity (within a unit, within a group, between groups), never with one default gap. | must | Confirmed |
+| DS-018 | Each kind of control shall keep its job: tabs for navigation, button groups for related actions or a value, toggles for one setting, list lines to go somewhere, one primary action per screen. | must | Confirmed |
+| DS-019 | Icons shall come from one open icon set matched to the typeface, at whole-pixel strokes, with visible labels except for the standard transport, volume and status glyphs, and an accessible name on every icon-only control. | must | Confirmed |
+| DS-020 | Long text shall be cut with an ellipsis, never scrolled automatically, and its full text shall always be reachable. | must | Confirmed |
 
 ## Context
 
+- DS-015 to DS-020 (2026-10-23): decided under the maintainers' delegation from the [small-screen interface and accessibility research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-small-screen-ui-accessibility.md), after their review of the first mockups (too wide margins, mechanical spacing, tabs drawn as button groups, a phone-like structure). Values in the [design system](../specs/design-system.md) §8.3, §9.3, §9.6, §9.7, §10.1 and §15.
 - DS-014 (maintainers, 2026-10-23): a 3.5" screen is not a phone; the values are in the design system §8.3, from the [small-screen research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-controls-gestures-small-screen.md).
 - DS-002 to DS-005: Adopted from the earlier experiments on 2026-10-21 as **Draft**: consistent with the decisions already taken and with the product philosophy, pending the maintainers' confirmation. Part availability still has to be checked against the sourcing rule (T1-010).
 - Withdrawn on 2026-10-21 after the [experiment review](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-experiment-review.md): DS-002, DS-003, DS-004, DS-005.

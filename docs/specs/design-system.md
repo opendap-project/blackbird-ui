@@ -3,10 +3,10 @@
 Engineered Matter is the name of OpenDAP's design system (maintainers, 2026-10-23).
 
 - **Status:** Draft. This is the maintainers' design direction (2026-10-22). Values are starting points: colours, sizes and timings are to be validated on the first prototype's display and hardware.
-- **Date:** 2026-10-22
+- **Date:** 2026-10-22; revised 2026-10-23 (type scale for a 35 cm reading distance, margins and proximity, controls, icons, long text and accessibility, from the [small-screen interface and accessibility research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-small-screen-ui-accessibility.md))
 - **Scope:** visual language, interaction patterns and design tokens for the Blackbird OS interface, OpenDAP Desktop, documentation and product renders. The physical product's materials and geometry are summarised here and specified in the [case industrial-design spec](https://github.com/opendap-project/case/blob/main/docs/specs/industrial-design.md); the body buttons in the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md).
 - **Tokens:** [`tokens/opendap.tokens.json`](../../tokens/opendap.tokens.json) is the canonical source of every value below.
-- **Requirements:** DS-001, DS-006 to DS-013 in this repository; SYS-009, SYS-021 to SYS-030, SYS-033 to SYS-037 in [`system`](https://github.com/opendap-project/system/blob/main/docs/requirements/README.md); T1-014, T1-015, T1-022, T1-056, T1-057, T1-059 in [`t1`](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md).
+- **Requirements:** DS-001, DS-006 to DS-020 in this repository; SYS-061 to SYS-066 (accessibility) and SYS-009, SYS-021 to SYS-030, SYS-033 to SYS-037 in [`system`](https://github.com/opendap-project/system/blob/main/docs/requirements/README.md); T1-014, T1-015, T1-022, T1-056, T1-057, T1-059 in [`t1`](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md).
 
 **Design principle: engineering excellence, made approachable.**
 
@@ -314,6 +314,13 @@ The T1 is an audio player, not a general-purpose smartphone. The interface puts 
 
 Do not add a conventional app launcher, dashboards or complex navigation only because they are familiar from smartphones.
 
+**One instrument, not a small phone.** The screen and the four body buttons are one interface, and familiar mobile patterns are used only after asking what they do on this device ([interface mockups](https://github.com/opendap-project/t1/blob/main/renders/web/ui-mockups.html)):
+
+- **Natural mapping.** What a button does is drawn beside it: volume on the left edge between Volume + and Volume −, power choices next to Main (a second press of Main confirms power off), an edge mark beside Action when Action does something other than play/pause. The controls' heights on the panel (about 38, 144 and 226 px from the top on the left; 90 px on the right) come from the concept art and are to be confirmed with the case.
+- **Music is home.** The T1 wakes in Now Playing; the library lies below it, the queue to its right, details below the player. No bottom tab bar, no launcher.
+- **Content, not chrome.** Type, artwork and hairlines carry structure: no card inside a card, no floating action button, no hamburger, no tile grid for status. The status bar unfolds into its own detail, item by item in the same order.
+- **Engineered clarity.** The signal path is drawn as a chain, profiles as stops on the axis below, technical values as a right-aligned mono readout.
+
 Audio screens follow one axis (SYS-041): from the audiophile, who wants to enjoy the music, to the engineer, who wants to monitor, analyse and compare. Defaults serve the audiophile (the music first, technical detail quiet); every engineering view (signal path, meters, A/B) is one step away, never buried.
 
 ### 8.2 Hierarchy
@@ -334,6 +341,8 @@ The T1's panel has the original iPhone's size and density (320 × 480 at about 1
 | On-screen keyboard keys (documented exception) | 4.9 mm wide, 7.0 mm tall | 32 × 46 px, with long-press alternates and hit-target correction |
 
 - A hit area may be larger than the drawn control; status-bar icons are not targets of their own.
+- **Side margins are 16 px** (2.4 mm; `space.margin`), leaving 288 px of content width. The 20 px edge-gesture zones overlap the margin; they react only to swipes that start at the edge.
+- **Rows:** 52 px for one line, 60 px for two lines (`size.row`, `size.row-two`); 6–7 one-line rows fit between the header and the playing strip.
 - At most five targets in a row (five 52 px targets fill the 272 px content width).
 - Primary and frequent actions sit in the lower half, where the thumb rests; the top holds what is used least, and each of those has a gesture too (§8.5).
 
@@ -399,19 +408,19 @@ Avoid wide tracking, tiny uppercase labels and condensed futuristic faces. Upper
 
 Consistent line height; no long uppercase passages; a clear difference between primary and secondary text; no small text over plasma or thermal effects; the minimum type size is tested on the target display.
 
-The type scale (tokens `font.size.*` and `font.line-height.*`; decided 2026-10-23, to be checked on the prototype panel). On the T1 one pixel is 0.153 mm (§18.2):
+The type scale (tokens `font.size.*` and `font.line-height.*`; revised 2026-10-23 under the maintainers' delegation, to be checked on the prototype panel; DS-015). It is sized for a **35 cm** reading distance: character height should be at least 16 minutes of arc where legibility matters and 20–22′ is preferred (ANSI/HFS 100, as quoted in the FAA Human Factors Design Standard). The first scale (14 px body, 11 px caption) fell below 16′ beyond about 33 cm. On the T1 one pixel is 0.153 mm (§18.2); cap heights are IBM Plex Sans's (0.698 em):
 
-| Role | Size / line height (px) | Cap height on the T1 | Use |
-|---|---|---|---|
-| `display` | 32 / 38 | 3.4 mm | Large numbers (volume overlay, clock on the lock screen) |
-| `headline` | 24 / 30 | 2.6 mm | Screen titles that carry the screen |
-| `title` | 20 / 26 | 2.1 mm | Track title, section titles |
-| `body-large` | 16 / 22 | 1.7 mm | Primary list rows |
-| `body` | 14 / 20 | 1.5 mm | Body text, artist and secondary rows |
-| `label` | 12 / 16 | 1.3 mm | Control labels, metadata |
-| `caption` | 11 / 14 | 1.2 mm | Status bar, technical values (IBM Plex Mono); the minimum size |
+| Role | Size / line height (px) | Cap height | At 35 cm | Use |
+|---|---|---|---|---|
+| `display` | 32 / 40 | 3.4 mm | 33.6′ | Large numbers (volume overlay, readouts) |
+| `headline` | 24 / 32 | 2.6 mm | 25.2′ | Screen titles that carry the screen |
+| `title` | 20 / 28 | 2.1 mm | 21.0′ | Track title, screen titles |
+| `body-large` | 17 / 24 | 1.8 mm | 17.8′ | Primary list rows, reading text |
+| `body` | 15 / 22 | 1.6 mm | 15.7′ | Secondary lines, sentences |
+| `label` | 13 / 18 | 1.4 mm | 13.6′ | Control labels, metadata, section labels |
+| `caption` | 12 / 16 | 1.3 mm | 12.6′ | Status bar, timestamps, technical values (IBM Plex Mono); the minimum |
 
-Nothing smaller than `caption`. Cap heights are IBM Plex Sans's (0.698 em).
+Nothing smaller than `caption` (12 px, the watchOS minimum; one point on the original iPhone panel is about one T1 pixel). Text that must be read while walking uses `body` or larger; `label` and `caption` carry identification that is not time-critical. Line heights are set explicitly on a 2 px grid, never "normal": Plex Sans SC's 1.0 em line gap would double them. Larger text sizes scale these roles nonlinearly (§13).
 
 ### 9.4 Script coverage
 
@@ -441,11 +450,38 @@ Decided on 2026-10-23 from these results:
 
 Arabic makes right-to-left a launch requirement (SYS-025). Layouts mirror: leading and trailing swap, horizontal sequences reverse, directional icons (back, forward, chevrons, progress direction) flip. Media transport controls (previous, play/pause, next) and the seek bar's direction do not mirror: they show the direction of the tape, not of reading, and physical players look the same everywhere ([Material Design, bidirectionality](https://m2.material.io/go/design-bidirectionality), checked 2026-10-23). Volume, which stands for a physical order too, does not mirror either (§15.1). Slint does not mirror layouts yet ([#2294](https://github.com/slint-ui/slint/issues/2294)), so the mirroring comes from OpenDAP's `.slint` generator. Tokens are written in logical terms (start, end), never left and right.
 
+### 9.6 Per-script metrics
+
+Per-locale size and line-height tokens, never per-string overrides (DS-016). Measured on the Plex files; renders on the T1's own renderer are still to be checked:
+
+| Script | Minimum for captions and metadata | Line height | Note |
+|---|---|---|---|
+| Latin | 12 px | 1.3–1.4 em in rows, 1.45 em in sentences | — |
+| Han (Plex Sans SC) | 12 px | 1.4–1.5 em | Digits from the Latin face (SC's are 630 units wide, Plex Sans's 600) |
+| Devanagari | 13 px | 1.5–1.6 em | Matras: ink reaches about 1.25 em on common words |
+| Arabic | 13 px | 1.5–1.6 em | Vowel marks reach about 1.34 em; layout mirrors (§9.5) |
+
+### 9.7 Long text and translation
+
+- **Cut, not scrolled** (DS-020). End ellipsis for titles, artists and albums; middle ellipsis for file and device names; the ellipsis at the logical end in right-to-left text. No automatic marquee: scrolling only the focused row after a delay is a setting, off by default (WCAG 2.2.2; driving guidelines reject automatically scrolling text). The Now Playing title wraps to two lines before it is cut; the full text is always reachable (the More view and the accessible name).
+- **Expansion budgets** against English: 300 % for buttons and tabs of up to 10 characters (or two lines), 200 % for 11–20 characters, 160–180 % for sentences (W3C). Side-by-side buttons only where the longest translation fits; otherwise they stack.
+- **Formats** from CLDR (grouping, decimal separator, digits, plurals, relative time), never concatenated; sentence case everywhere.
+
 ## 10. Spacing, radii, borders and elevation
 
 ### 10.1 Spacing
 
-A 4 px base: `space.1` 4, `space.2` 8, `space.3` 12, `space.4` 16, `space.5` 20, `space.6` 24, `space.8` 32, `space.10` 40, `space.12` 48 (px). Adapt density to the display, but never compress important controls to fit more content. Layouts leave room for text expansion between languages (DS-006).
+A 4 px base: `space.1` 4, `space.2` 8, `space.3` 12, `space.4` 16, `space.5` 20, `space.6` 24, `space.8` 32, `space.10` 40, `space.12` 48 (px).
+
+**Proximity decides the gap, not a default** (DS-017). Spacing says what belongs together:
+
+| Relationship | Space | Token | Example |
+|---|---|---|---|
+| Within one unit | 0–4 px | `space.unit` (4) | Title and artist; a label and its value; a value and its slider |
+| Within a group | 8–12 px | `space.group` (12) | Items of a section; artwork and its caption; the format line and the seek bar |
+| Between groups | 16–24 px | `space.section` (20) | Sections of a screen; a readout and the list below it |
+
+Lists separate lines with hairlines (`border`, 1 px), not with gaps or cards. A section label sits one group step after the previous group and one unit step before its first line. Side margins are 16 px (`space.margin`, §8.3). Adapt density to the display, but never compress important controls to fit more content. Layouts leave room for text expansion between languages (DS-006).
 
 ### 10.2 Radii
 
@@ -530,7 +566,9 @@ Accessibility is part of engineering quality (DS-010):
 - Plasma effects never cover important information.
 - Keyboard and non-touch input reach every control (SYS-021 to SYS-026; non-touch faceplates send HID navigation).
 
-The display and physical controls are also evaluated under realistic light and viewing angles.
+- Built-in features (SYS-061 to SYS-066): voice guidance driven from the buttons and by touch, turned on without sight; text size in five steps to about 200 % with reflow, and a large-text mode (EN 301 549 V4.1.1 5.1.4: x-height of at least 2.38 mm, about a 30 px font, one item per line); increase contrast (text ≥ 7:1), bold text, reduce motion, transparency and effects; a light, high-contrast appearance for sunlight and low vision (an accessibility appearance, not a second theme, SYS-030); colour filters; mono and balance; configurable press and hold timings.
+
+The display and physical controls are also evaluated under realistic light and viewing angles; in direct sun only panel luminance, anti-reflection, larger and bolder type and the light appearance keep text readable.
 
 ## 14. Design tokens
 
@@ -568,7 +606,8 @@ No colour, radius or timing is written outside the tokens without a recorded rea
 
 - **Primary action:** round or near-round; the only orange emphasis on the screen; dark foreground on the orange fill (§3.4); a clearly visible pressed state (`brand-pressed`); no persistent glow; an accessible name and state.
 - **Secondary action:** graphite surface; neutral border or tonal separation; white label or icon; orange only for selected or active states.
-- **Button groups and segmented controls:** see §15.1.
+- **Tabs:** navigation between views of the same level. Text labels in a row, the current one in `text` with a 2 px underline, the others `text-muted`; no container, no capsule; each tab at least 48 px wide and tall (§15.2).
+- **Button groups and segmented controls:** actions that belong together, or one value chosen from two to five options; see §15.1. Never for navigation.
 - **Playback controls:** play and pause immediately distinguishable; skip controls subordinate to the primary action; volume easy to reach; the playback state never shown by animation alone; output and format settings reachable without cluttering the playback screen. Transport controls do not mirror in right-to-left layouts (§9.5).
 - **Status indicators:** stable semantic colours with a label, icon or other non-colour cue; animated luminous indicators only for active processing; no permanent decorative blinking. Where the screen shows the same state as the status LED, it uses the same colour family (§18.4).
 - **Panels and cards:** graphite tonal surfaces; consistent radii; minimal borders; clear internal spacing; no deep nesting; no plasma background on ordinary cards.
@@ -591,6 +630,27 @@ On screen this covers button groups and segmented controls, for example gain, fi
 | Accessibility | Each segment has its own accessible name; a single-choice group is announced as one group with a selected item | — |
 
 A group of two to five segments fits the 320 px width at the touch minimum; more options go to a list or a picker.
+
+### 15.2 Choosing the control
+
+Each job has its control (DS-018); they are not interchangeable:
+
+| Control | Job | Example |
+|---|---|---|
+| Tabs | Switch between views of the same level; the content below changes | Library: Albums, Artists, Playlists, More |
+| Button group (§15.1) | Several related actions, or one value from two to five options that acts at once | Pause / Sync now; a DAC filter selector |
+| Toggle | One setting on or off, its state in words or a switch | Bluetooth on; blind comparison off |
+| Radio stops on an axis | One of a few options on a meaningful scale | Profiles from "enjoy" to "analyse" (SYS-041) |
+| List line | Go to a thing or a sub-screen; full width, hairline, chevron | Settings parts, artists |
+| Primary action | The screen's one main action, also on the Action button; orange, 64 px | Play, Eject, Pair |
+
+### 15.3 Icons
+
+- **Set:** IBM Carbon icons (Apache-2.0), drawn to match IBM Plex: 32 px grid, 2 px stroke, square caps. Missing glyphs (album, lyrics) are drawn in the same grammar; Material Symbols (Apache-2.0) is the fallback. The licence is kept per file under REUSE (DS-019).
+- **Sizes:** status bar 15–16 px (2.3–2.4 mm); beside text 16–20 px; header actions and secondary transport 24 px (3.7 mm); primary transport 28–32 px (4.3–4.9 mm). Every interactive icon sits in a hit area of at least 48 px.
+- **Strokes in whole pixels** (2 px at 24 and 32); a scaled master that lands on 1.25 or 1.5 px is redrawn, not shipped.
+- **Filled** glyphs for learned, stateful controls (play/pause, favourite on); outline for the rest.
+- **Labels:** visible words on every icon except the transport set, volume and the status-bar glyphs; every icon-only control has an accessible name for its function, and toggles expose their state separately. Long press is never the only way to learn what a control does.
 
 ## 16. Product renders
 
