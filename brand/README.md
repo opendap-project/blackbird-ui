@@ -100,26 +100,26 @@ The print values keep the wordmark's cap height at 3 mm or more. At 16 px the ga
 - Place it in a container or next to anything that enters its clear space.
 - Use the archived [option A](archive/option-a/README.md).
 
-## Release assets
+## Product lockups
 
-Each OpenDAP OS release has a codename, and its assets are in `releases/<codename>/`, generated with the rest. The first release is **Blackbird**: [`releases/blackbird/`](releases/blackbird/).
+OpenDAP software products have a lockup with the OpenDAP wordmark above the product name, generated with the rest in `products/<slug>/`. The first is **Blackbird OS**: [`products/blackbird-os/`](products/blackbird-os/). Releases carry no codename ([blackbird-os ADR 0011](https://github.com/opendap-project/blackbird-os/blob/main/docs/adr/0011-blackbird-os.md)).
 
 | File | Use |
 |---|---|
-| `opendap-<codename>-stacked-<colour>.svg` | "OpenDAP" above the codename, no mark: release notes, documents, headers |
-| `opendap-<codename>-vertical-<colour>.svg` | The mark above both lines: square or tall spaces |
-| `opendap-<codename>-banner.svg` | 1280 × 640 px, the vertical lockup on graphite: release pages and repository previews |
+| `<slug>-stacked-<colour>.svg` | "OpenDAP" above the product name, no mark: release notes, documents, headers |
+| `<slug>-vertical-<colour>.svg` | The mark above both lines: square or tall spaces |
+| `<slug>-banner.svg` | 1280 × 640 px, the vertical lockup on graphite: release pages and repository previews |
 
-- **Type:** "OpenDAP" in SemiBold, as the wordmark; the codename in IBM Plex Sans Regular at half the wordmark's cap height, its cap top three quarters of a cap height under the wordmark's baseline. Both lockups are centred.
+- **Type:** "OpenDAP" in SemiBold, as the wordmark; the product name in IBM Plex Sans Regular at half the wordmark's cap height, its cap top three quarters of a cap height under the wordmark's baseline. Both lockups are centred.
 - **Colour:** `light`, `dark` or `current`, one colour for the whole lockup, as the logo. Never orange.
 - **Clear space:** as the wordmark (stacked) or the vertical lockup (vertical).
-- **Minimum size (screen, 1×):** stacked 48 px, vertical 128 px; below them the codename stops being legible (checked in Chrome, 2026-10-22).
-- The codename never stands alone with the mark, and never replaces the wordmark.
+- **Minimum size (screen, 1×):** stacked 48 px, vertical 128 px, as checked for the earlier release lockups (Chrome, 2026-10-22); the longer name "Blackbird OS" is **UNVERIFIED** at those sizes.
+- The product name never stands alone with the mark, and never replaces the wordmark.
 
 ## Generators
 
 - `mark.py`: the mark from the construction above. `mark.py OUT.svg [--fill …]` writes one mark; `--grid` writes the construction drawing.
-- `logo.py`: every file in `svg/`, the release assets and the construction drawing. It needs fontTools, uharfbuzz and IBM Plex Sans SemiBold and Regular (SIL OFL 1.1) from [IBM/plex](https://github.com/IBM/plex) (`ibm-plex-sans`, `fonts/complete/otf`); the fonts are not stored here. A new release is one more name in `RELEASES`:
+- `logo.py`: every file in `svg/`, the product lockups and the construction drawing. It needs fontTools, uharfbuzz and IBM Plex Sans SemiBold and Regular (SIL OFL 1.1) from [IBM/plex](https://github.com/IBM/plex) (`ibm-plex-sans`, `fonts/complete/otf`); the fonts are not stored here. A new release is one more name in `RELEASES`:
 
   ```sh
   python3 logo.py --plex path/to/ibm-plex-sans/fonts/complete/otf

@@ -26,7 +26,7 @@ Units: on the T1, `px` is one panel pixel (about 0.153 mm at 166 ppi). Values th
 
 The JSON file is the single source. Two outputs are generated from it and never edited by hand:
 
-- **Slint** globals for OpenDAP OS on the device ([system ADR 0006](https://github.com/opendap-project/system/blob/main/docs/adr/0006-slint-as-host-renderer.md)).
+- **Slint** globals for Blackbird OS on the device ([system ADR 0006](https://github.com/opendap-project/system/blob/main/docs/adr/0006-slint-as-host-renderer.md)).
 - **CSS** custom properties for the web, documentation and OpenDAP Desktop (`--color-bg`, `--space-4`, `--radius-control`…, as listed in the spec).
 
 The generator is **not written yet**, and its tooling is not chosen.

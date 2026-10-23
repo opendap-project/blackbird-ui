@@ -2,7 +2,7 @@
 
 - **Status:** Draft. This is the maintainers' design direction (2026-10-22). Values are starting points: colours, sizes and timings are to be validated on the first prototype's display and hardware.
 - **Date:** 2026-10-22
-- **Scope:** visual language, interaction patterns and design tokens for the OpenDAP OS interface, OpenDAP Desktop, documentation and product renders. The physical product's materials and geometry are summarised here and specified in the [case industrial-design spec](https://github.com/opendap-project/case/blob/main/docs/specs/industrial-design.md); the body buttons in the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md).
+- **Scope:** visual language, interaction patterns and design tokens for the Blackbird OS interface, OpenDAP Desktop, documentation and product renders. The physical product's materials and geometry are summarised here and specified in the [case industrial-design spec](https://github.com/opendap-project/case/blob/main/docs/specs/industrial-design.md); the body buttons in the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md).
 - **Tokens:** [`tokens/opendap.tokens.json`](../../tokens/opendap.tokens.json) is the canonical source of every value below.
 - **Requirements:** DS-001, DS-006 to DS-013 in this repository; SYS-009, SYS-021 to SYS-030, SYS-033 to SYS-037 in [`system`](https://github.com/opendap-project/system/blob/main/docs/requirements/README.md); T1-014, T1-015, T1-022, T1-056, T1-057, T1-059 in [`t1`](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md).
 
@@ -436,7 +436,7 @@ Extremely subtle and slow; atmospheric detail, never a source of information.
 
 ### 11.4 Reduced motion
 
-OpenDAP OS has a system **reduce motion** setting, and web surfaces honour `prefers-reduced-motion` (DS-012). Reduced motion replaces animation with a static state; it never removes the feedback the animation carried.
+Blackbird OS has a system **reduce motion** setting, and web surfaces honour `prefers-reduced-motion` (DS-012). Reduced motion replaces animation with a static state; it never removes the feedback the animation carried.
 
 ## 12. Lighting and effects
 
@@ -464,7 +464,7 @@ Every effect costs attention, rendering time and battery. Before adding one, ans
 
 If any answer is unclear, remove the effect.
 
-OpenDAP OS has a **reduced-effects** mode that replaces plasma and thermal effects with their static or flat equivalents (DS-009). The interface is complete and correct with every effect off.
+Blackbird OS has a **reduced-effects** mode that replaces plasma and thermal effects with their static or flat equivalents (DS-009). The interface is complete and correct with every effect off.
 
 ## 13. Accessibility
 

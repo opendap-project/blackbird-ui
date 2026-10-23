@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate every OpenDAP brand SVG: the mark, the wordmark and the vertical lockup, in each colour,
-and each OpenDAP OS release's assets (release lockups and banner) in releases/<codename>/.
+and the product lockups and banner for each OpenDAP software product (Blackbird OS) in products/<slug>/.
 
-The wordmark "OpenDAP" is set in IBM Plex Sans SemiBold and release codenames in Regular (SIL OFL 1.1), shaped
+The wordmark "OpenDAP" is set in IBM Plex Sans SemiBold and product names in Regular (SIL OFL 1.1), shaped
 with HarfBuzz (kerning on) and converted to outlines, so no font is needed to display them. The fonts
 are not stored here: pass the folder of OTFs from
 https://github.com/IBM/plex (ibm-plex-sans, fonts/complete/otf).
@@ -29,10 +29,10 @@ LOCKUPS = {
     "vertical": (5 * S / 2, 3 * S / 2),        # 70 u caps, 42 u gap, wordmark centred under the mark
 }
 WORDMARK_CAP = 5 * S                           # the standalone wordmark's scale (it is scaled as a whole)
-RELEASES = ["Blackbird"]                       # OpenDAP OS release codenames, newest last
-CODENAME_SIZE = 1 / 2                        # codename cap height, in wordmark cap heights
-CODENAME_GAP = 3 / 4                           # wordmark baseline to codename cap top, in wordmark cap heights
-BANNER = (1280, 640)                           # release banner, px (release notes, repository preview)
+PRODUCTS = ["Blackbird OS"]                    # product lockups under the OpenDAP wordmark
+NAME_SIZE = 1 / 2                            # product name cap height, in wordmark cap heights
+NAME_GAP = 3 / 4                               # wordmark baseline to product name cap top, in wordmark cap heights
+BANNER = (1280, 640)                           # product banner, px (release notes, repository preview)
 COLOURS = {"light": "#F5F6F4", "dark": "#111315", "accent": "#FF6A2A", "current": "currentColor"}
 NUM = lambda v: f"{round(v, 3):g}"
 
@@ -86,9 +86,9 @@ def union(*bs):
     return min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs)
 
 
-def release_layouts(font, regular, codename):
-    """Release lockups, every builder (ox, oy, k) -> (path data, ink bounds) at scale k:
-    - stacked: "OpenDAP" (SemiBold) above the codename (Regular, smaller), centred; no mark,
+def product_layouts(font, regular, name):
+    """Product lockups, every builder (ox, oy, k) -> (path data, ink bounds) at scale k:
+    - stacked: "OpenDAP" (SemiBold) above the name (Regular, smaller), centred; no mark,
       like the wordmark;
     - vertical: the mark above the two lines, all centred, with the vertical lockup's measures."""
     cs = mark.contours()
@@ -97,10 +97,10 @@ def release_layouts(font, regular, codename):
     cap_v, gap = LOCKUPS["vertical"]
 
     def lines(x_of, top, cap, ox, oy, k):
-        small = cap * CODENAME_SIZE
+        small = cap * NAME_SIZE
         a, ab = wordmark(font, cap * k, ox + x_of(font, cap, "OpenDAP") * k, oy + (top + cap) * k)
-        b, bb = wordmark(regular, small * k, ox + x_of(regular, small, codename) * k,
-                         oy + (top + cap + cap * CODENAME_GAP + small) * k, codename)
+        b, bb = wordmark(regular, small * k, ox + x_of(regular, small, name) * k,
+                         oy + (top + cap + cap * NAME_GAP + small) * k, name)
         return a + b, union(ab, bb)
 
     def stacked(ox, oy, k=1):
@@ -126,7 +126,7 @@ def svg_file(path, build, fill, title):
 
 
 def banner(path, build, title):
-    """The vertical release lockup centred on graphite, its height half the banner's."""
+    """The vertical product lockup centred on graphite, its height half the banner's."""
     W, H = BANNER
     x0, y0, x1, y1 = build(0, 0)[1]
     k = H / 2 / (y1 - y0)
@@ -150,16 +150,16 @@ def main():
                 continue                       # the orange is for the mark alone
             svg_file(os.path.join(a.out, f"opendap-{name}-{colour}.svg"), build, fill, "OpenDAP")
     here = os.path.dirname(os.path.abspath(__file__))
-    for codename in RELEASES:
-        slug, title = codename.lower(), f"OpenDAP {codename}"
-        rel = os.path.join(here, "releases", slug)
-        os.makedirs(rel, exist_ok=True)
-        builds = release_layouts(bold, regular, codename)
+    for product in PRODUCTS:
+        slug = product.lower().replace(" ", "-")
+        out = os.path.join(here, "products", slug)
+        os.makedirs(out, exist_ok=True)
+        builds = product_layouts(bold, regular, product)
         for name, build in builds.items():
             for colour, fill in COLOURS.items():
                 if colour != "accent":
-                    svg_file(os.path.join(rel, f"opendap-{slug}-{name}-{colour}.svg"), build, fill, title)
-        banner(os.path.join(rel, f"opendap-{slug}-banner.svg"), builds["vertical"], title)
+                    svg_file(os.path.join(out, f"{slug}-{name}-{colour}.svg"), build, fill, product)
+        banner(os.path.join(out, f"{slug}-banner.svg"), builds["vertical"], product)
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "opendap-mark-construction.svg"), "w") as f:
         f.write(mark.construction())
 

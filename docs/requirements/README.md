@@ -1,17 +1,17 @@
 # UI components requirements
 
-Requirements for the official UI components and design system of OpenDAP OS.
+Requirements for the official UI components and design system of Blackbird OS.
 
 | ID | Requirement | Priority | Status |
 |---|---|---|---|
-| DS-001 | All OpenDAP OS UI shall follow the official design system. | must | Confirmed |
+| DS-001 | All Blackbird OS UI shall follow the official design system. | must | Confirmed |
 | DS-002 | Typography: IBM Plex (Sans for the interface, Serif italic for reading and notes, Mono for data). | should | Withdrawn |
 | DS-003 | Color: warm black #0E0D0C and ivory #F3EFE7, with one accent per activity (Listen #F0A63C, Watch #7DB3E8, Read #A3C98F, Create #EE7E62, Day #6CC4B4, Advanced #B7A4F0). | should | Withdrawn |
 | DS-004 | Layout anatomy: status bar, a strip of activities (the active one large, the others peeking) and a 60 px playback thread at the bottom, replacing tabs and icons. | should | Withdrawn |
 | DS-005 | Reference screen: 480 × 800 portrait; some views landscape 800 × 480. | should | Withdrawn |
 | DS-006 | Components and templates shall be i18n-first: no hard-coded text, room for text expansion, mirrored layouts for right-to-left languages, and script-aware typography (SYS-025). | must | Confirmed |
 | DS-007 | The design system shall define one official theme, with its tokens and templates structured so community themes can replace them without code (SYS-030). | must | Confirmed |
-| DS-008 | The [design system spec](../specs/design-system.md) shall be the reference for all OpenDAP OS UI, OpenDAP Desktop, documentation visuals and product renders; its tokens file is the single source of design values. | must | Confirmed |
+| DS-008 | The [design system spec](../specs/design-system.md) shall be the reference for all Blackbird OS UI, OpenDAP Desktop, documentation visuals and product renders; its tokens file is the single source of design values. | must | Confirmed |
 | DS-009 | Plasma and thermal effects shall be a special visual mode, never used on routine screens (lists, settings, ordinary cards), and the UI shall offer a reduced-effects mode that replaces them with static or flat equivalents without losing information. | must | Confirmed |
 | DS-010 | Text shall meet WCAG 2 AA contrast against its background in every theme, and no state shall be communicated by colour alone. | must | Confirmed |
 | DS-011 | Typography shall define its roles (interface, technical values) and cover the scripts of every shipped language, starting with Latin, Han, Devanagari and Arabic (SYS-028), with right-to-left mirroring. | must | Confirmed |
