@@ -33,6 +33,16 @@ The SVGs are flat, so they scale and convert without distortion:
 
 `social/opendap-avatar.png` (1024 × 1024) is the profile picture for the GitHub organisation and other accounts: the light vertical lockup at 56 % of the width, centred, on the graphite studio backdrop of the T1 concept art (a radial gradient from `#1D2125` to `#0D0F11` with a soft cool light pool). The lockup stays inside the circle that platforms crop to. `social/opendap-avatar.svg` is its source; render it with `rsvg-convert -w 1024 -h 1024`.
 
+## App icon
+
+`app_icon.py` writes the app icon of OpenDAP's own host applications (the virtual devices' window, OpenDAP Desktop) to [`../export/brand/`](../export/brand/): `opendap-app-icon.png` (1024 × 1024) and `opendap-app.icns` (macOS, through `iconutil`).
+
+- **Mark:** the light mark at 56 % of the body's width, centred on its ink. It is rasterised from `mark.py`'s own contours, so no SVG renderer is needed.
+- **Backdrop:** the avatar's graphite studio backdrop.
+- **Shape:** Apple's icon grid: an 824 px squircle in a 1024 px canvas, with a soft shadow below it.
+
+Run `python3 brand/app_icon.py export/brand` after changing the mark.
+
 ## Construction on a 1:1 grid
 
 Grid unit u; major grid every 7 u. The stroke (28 u) is the module: every measure is a grid integer or a simple ratio of it.
