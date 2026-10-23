@@ -31,6 +31,8 @@ The SVGs are flat, so they scale and convert without distortion:
 
 `opendap-mark-construction.svg` is the construction drawing: a document, not a logo asset.
 
+`social/opendap-avatar.png` (1024 × 1024) is the profile picture for the GitHub organisation and other accounts: the light vertical lockup at 56 % of the width, centred, on the graphite studio backdrop of the T1 concept art (a radial gradient from `#1D2125` to `#0D0F11` with a soft cool light pool). The lockup stays inside the circle that platforms crop to. `social/opendap-avatar.svg` is its source; render it with `rsvg-convert -w 1024 -h 1024`.
+
 ## Construction on a 1:1 grid
 
 Grid unit u; major grid every 7 u. The stroke (28 u) is the module: every measure is a grid integer or a simple ratio of it.
