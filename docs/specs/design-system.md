@@ -314,6 +314,8 @@ The T1 is an audio player, not a general-purpose smartphone. The interface puts 
 
 Do not add a conventional app launcher, dashboards or complex navigation only because they are familiar from smartphones.
 
+Audio screens follow one axis (SYS-041): from the audiophile, who wants to enjoy the music, to the engineer, who wants to monitor, analyse and compare. Defaults serve the audiophile (the music first, technical detail quiet); every engineering view (signal path, meters, A/B) is one step away, never buried.
+
 ### 8.2 Hierarchy
 
 Every screen has a **primary** level (the current task or the most important information), a **secondary** level (supporting controls and metadata) and a **tertiary** level (technical detail, diagnostics, optional configuration). Technical detail is available on demand, never permanently in the way.
