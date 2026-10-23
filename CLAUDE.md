@@ -1,6 +1,6 @@
-# UI Components
+# Blackbird UI
 
-Official UI components of Blackbird OS: the design tokens, guidelines and components of the product UI system, the templates the host renders, and the dynamic components contributed through the registry (including those from HATs).
+Blackbird UI, the user interface of Blackbird OS: the Engineered Matter design system, its tokens, OpenDAP Icons, guidelines and components, the templates the host renders, and the dynamic components contributed through the registry (including those from HATs).
 
 Part of [OpenDAP](https://github.com/opendap-project). This repository is open source.
 
