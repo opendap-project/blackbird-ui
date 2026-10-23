@@ -4,7 +4,9 @@ Blackbird UI, the user interface of Blackbird OS: **Engineered Matter**, the Ope
 
 ## Layout
 
-- `tokens/`
+- `tokens/`: the token file and `generate.py`
+- `export/`: generated outputs other repositories read (`slint/tokens.slint`, `css/tokens.css`)
+- `fonts/`: IBM Plex, vendored (OFL-1.1)
 - `icons/`
 - `components/`
 - `docs/`
@@ -16,5 +18,6 @@ This repository follows the [REUSE](https://reuse.software) layout: license text
 - Default: **Mozilla Public License 2.0** (`MPL-2.0`)
 - Markdown files: **Creative Commons Attribution-ShareAlike 4.0** (`CC-BY-SA-4.0`)
 - `docs/`: **Creative Commons Attribution-ShareAlike 4.0** (`CC-BY-SA-4.0`)
+- `fonts/`: IBM Plex under the **SIL Open Font License 1.1** (`OFL-1.1`), © IBM Corp.
 
 Copyright © 2026 The OpenDAP Project.

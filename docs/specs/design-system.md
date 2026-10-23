@@ -674,7 +674,7 @@ How this design direction fits the decisions already taken.
 ### 18.1 Rendering: Slint on the device, tokens as the single source
 
 - The device UI is rendered by **Slint** ([system ADR 0006](https://github.com/opendap-project/system/blob/main/docs/adr/0006-slint-as-host-renderer.md)), not by a browser. The CSS in this document is a **reference recipe** for web, documentation and OpenDAP Desktop, and a visual description for the device.
-- Tokens are canonical in `tokens/opendap.tokens.json` and generated into Slint globals and CSS custom properties (DS-008). The generator is not written yet.
+- Tokens are canonical in `tokens/opendap.tokens.json` and generated into Slint globals and CSS custom properties (DS-008) by `tokens/generate.py`, into `export/slint/` and `export/css/`.
 - Slint 1.18.1 draws linear, conic and **circular** radial gradients only ("only circular gradients are supported", [Slint reference](https://github.com/slint-ui/slint/blob/v1.18.1/docs/astro/src/content/docs/reference/property-types/colors-and-brushes.mdx)), and has no general blur or displacement filter. On the device, the elliptical plasma field is a circular gradient stretched by its element or a pre-rendered image, and blur, glow and thermal displacement are pre-rendered textures or an application-rendered GPU texture. Which of these meets the budgets is **UNVERIFIED** until measured.
 
 ### 18.2 Displays: any display, each one optimised

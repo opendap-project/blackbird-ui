@@ -24,12 +24,21 @@ Units: on the T1, `px` is one panel pixel (about 0.153 mm at 166 ppi). Values th
 
 ## Generated outputs
 
-The JSON file is the single source. Two outputs are generated from it and never edited by hand:
+The JSON file is the single source. [`generate.py`](generate.py) (Python 3, no dependencies) writes two outputs from it, which are never edited by hand:
 
-- **Slint** globals for Blackbird OS on the device ([system ADR 0006](https://github.com/opendap-project/system/blob/main/docs/adr/0006-slint-as-host-renderer.md)).
-- **CSS** custom properties for the web, documentation and OpenDAP Desktop (`--color-bg`, `--space-4`, `--radius-control`…, as listed in the spec).
+- **Slint**: `export/slint/tokens.slint`, the global `Tokens`, for Blackbird OS on the device ([system ADR 0006](https://github.com/opendap-project/system/blob/main/docs/adr/0006-slint-as-host-renderer.md)). Use it as `Tokens.text-primary`, `Tokens.space-margin`, `Tokens.font-size-body`.
+- **CSS**: `export/css/tokens.css`, custom properties for the web, documentation and OpenDAP Desktop (`--text-primary`, `--space-margin`, `--radius-control`…).
 
-The generator is **not written yet**, and its tooling is not chosen.
+Names are the token path joined with `-`. The `semantic` prefix is dropped, so `semantic.text.primary` becomes `text-primary`. Aliases are resolved.
+
+Slint has no type for shadows, gradients with stops or easing curves. Those tokens are listed in the generated file's header and drawn by components (design system §18.1).
+
+```sh
+python3 tokens/generate.py           # write both outputs
+python3 tokens/generate.py --check   # fail if they are out of date
+```
+
+Other repositories read `export/`, never the token file (`system` points at it with `BLACKBIRD_UI`).
 
 ## Themes
 
