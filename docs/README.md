@@ -4,8 +4,7 @@
 |---|---|
 | [`requirements/`](requirements/) | What this project must achieve. Each requirement has an ID, a priority (**must** / **should**) and a status. |
 | [`specs/`](specs/) | Specifications: the [design system](specs/design-system.md). |
-
-Architecture Decision Records go in `adr/` once decisions are taken.
+| [`adr/`](adr/) | Decisions the maintainers have taken: [0001](adr/0001-tabler-icons-as-the-base-family.md) Tabler Icons as the base family of OpenDAP Icons. |
 
 Only information confirmed by the maintainers is recorded here. Earlier experiments are not a source.
 

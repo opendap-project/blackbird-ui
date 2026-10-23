@@ -1,18 +1,25 @@
 # OpenDAP Icons
 
-The icon library of the Engineered Matter design system (DS-021). Every icon is drawn once in [`icons.py`](icons.py), which writes the SVGs, the catalogue and the [preview](../renders/web/icons.html).
+The icon library of the Engineered Matter design system (DS-021, [ADR 0001](../docs/adr/0001-tabler-icons-as-the-base-family.md)): semantic names over **[Tabler Icons](https://github.com/tabler/tabler-icons)** (MIT). [`icons.py`](icons.py) writes the SVGs, the catalogue and the [preview](../renders/web/icons.html).
 
-## Grammar
+## Sources
 
-- **Grids.**
-  - 24 px for everything on the 166 ppi panel: header actions, list lines, controls.
-  - 16 px for the status bar.
-  - On the 24 grid the live area is 2–22.
-- **Strokes.**
-  - 2 px, square caps, miter joins with a miter limit of 2, so right angles stay sharp and acute ones bevel.
-  - Horizontal and vertical strokes are centred on whole pixels, so they cover whole pixels and stay crisp.
-- **Outline by default, filled for learned, stateful controls:** transport, Liked, and the status-bar glyphs, which are filled where the shape allows, as phones do.
-- **Character.** The grammar of IBM Carbon (drawn for IBM Plex, the design system's typeface), redrawn natively on a 24 px grid. Carbon's 32 px masters would land on 1.5 px strokes at 24. No Carbon artwork is copied. If a Carbon glyph is ever imported, it keeps its Apache-2.0 licence in its own file under REUSE.
+- **Tabler Icons, as upstream draws them.**
+  - Pinned in [`vendor/tabler-icons/VERSION`](vendor/tabler-icons/VERSION) (`@tabler/icons` 3.49.0, with the tarball's integrity).
+  - Only the glyphs in use are vendored, unmodified, with upstream's `LICENSE`.
+  - [`map.toml`](map.toml) maps each name to its glyph (`[icons]` for the interface, `[status]` for the status bar).
+- **OpenDAP's own glyphs, only in extreme cases:** where Tabler has none and the meaning matters. Today there are two, `output-jack` (3.5 mm) and `output-balanced` (4.4 mm), drawn in Tabler's style.
+- **Updating Tabler:**
+  1. change the pin;
+  2. copy the mapped glyphs again;
+  3. run `icons.py`;
+  4. review the preview.
+
+## Sizes
+
+- **Interface:** 24 px, with Tabler's 2 px stroke.
+- **Status bar:** 16 px, with the same glyphs at a 1.5 stroke, which is 1 px. The battery shows its level with Tabler's glyphs: `status-battery-0` to `status-battery-4`.
+- **Filled glyphs** (Tabler's filled set) are for learned, stateful controls: transport and Liked.
 
 ## Names
 
@@ -28,8 +35,9 @@ The catalogue [`icons.json`](icons.json) lists each icon's name, grid, category,
   - `currentColor` only, so the theme's tokens colour them.
 - **Derivatives** (OS-028) replace the set the same way, in their image.
 - **Capabilities** use catalogue names only (template tier A, system ADR 0002). A glyph the catalogue lacks is contributed here first (system ADR 0004), so every surface and theme gets it.
-- **New icons** are added to `icons.py`, regenerated, and checked in the preview at 16, 20, 24, 32 and 48 px before they are merged.
+- **New icons** are a Tabler glyph added to `map.toml` (and copied into `vendor/`), regenerated, and checked in the preview before they are merged. A drawing of OpenDAP's own is the exception.
 
 ## Licence
 
-MPL-2.0, like the rest of the design system's assets (REUSE).
+- **Tabler's glyphs**, the vendored originals and the files in `svg/` built from them: MIT, © 2020-2026 Paweł Kuna. Each generated file says so in its header.
+- **OpenDAP's own glyphs, the build and the catalogue:** MPL-2.0, like the rest of the design system's assets (REUSE).
