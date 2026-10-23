@@ -325,7 +325,8 @@ Sized in millimetres on the real panel, then converted to pixels (§18.2):
 | Target | Minimum | On the T1 panel (166 ppi) |
 |---|---|---|
 | Any touch target | 6.7 mm | 44 × 44 px |
-| Primary and frequent actions | larger than the minimum; value set on the prototype | — |
+| Primary action (one per screen, for example play/pause) | 9.8 mm | 64 × 64 px (`size.target-primary`) |
+| Frequent actions (skip, back, like) | 7.9 mm | 52 × 52 px (`size.target-frequent`) |
 | Gap between destructive or mutually exclusive actions | 1.2 mm | 8 px (`space.2`) |
 | On-screen keyboard keys (documented exception) | 4.9 mm wide, 7.0 mm tall | 32 × 46 px, with long-press alternates and hit-target correction |
 
@@ -373,7 +374,21 @@ Avoid wide tracking, tiny uppercase labels and condensed futuristic faces. Upper
 
 ### 9.3 Legibility
 
-Consistent line height; no long uppercase passages; a clear difference between primary and secondary text; no small text over plasma or thermal effects; the minimum type size is tested on the target display. The type scale (sizes and line heights) is not defined yet: it is set on the prototype panel and added to the tokens.
+Consistent line height; no long uppercase passages; a clear difference between primary and secondary text; no small text over plasma or thermal effects; the minimum type size is tested on the target display.
+
+The type scale (tokens `font.size.*` and `font.line-height.*`; decided 2026-10-23, to be checked on the prototype panel). On the T1 one pixel is 0.153 mm (§18.2):
+
+| Role | Size / line height (px) | Cap height on the T1 | Use |
+|---|---|---|---|
+| `display` | 32 / 38 | 3.4 mm | Large numbers (volume overlay, clock on the lock screen) |
+| `headline` | 24 / 30 | 2.6 mm | Screen titles that carry the screen |
+| `title` | 20 / 26 | 2.1 mm | Track title, section titles |
+| `body-large` | 16 / 22 | 1.7 mm | Primary list rows |
+| `body` | 14 / 20 | 1.5 mm | Body text, artist and secondary rows |
+| `label` | 12 / 16 | 1.3 mm | Control labels, metadata |
+| `caption` | 11 / 14 | 1.2 mm | Status bar, technical values (IBM Plex Mono); the minimum size |
+
+Nothing smaller than `caption`. Cap heights are IBM Plex Sans's (0.698 em).
 
 ### 9.4 Script coverage
 
@@ -387,11 +402,21 @@ The UI ships with English, Mandarin Chinese, Hindi, Spanish and Arabic (SYS-028,
 | Devanagari | Hindi | IBM Plex Sans Devanagari | 1.1.0 | 0.18 MB |
 | Arabic | Arabic | IBM Plex Sans Arabic | 1.1.0 | 0.17 MB |
 
-Each family ships eight weights (Thin to Bold, plus Text). **UNVERIFIED:** glyph coverage of Plex Sans SC against the characters Chinese library metadata needs; shaping quality of Plex Sans Devanagari conjuncts and Plex Sans Arabic joining through parley and HarfRust; whether Plex Mono's Latin-only coverage needs a per-script fallback for technical values in Arabic or Hindi locales (for example Arabic-Indic digits); and the storage budget against the alternative in the [i18n research](https://github.com/opendap-project/system/blob/main/docs/research/2026-10-text-input-and-i18n.md) (Noto Sans SC subset, 8.33 MB). The per-script font packs and the CJK subset for first boot follow that research.
+Each family ships eight weights (Thin to Bold, plus Text). Checked on 2026-10-23 against the package versions above (fontTools, HarfBuzz through uharfbuzz 0.56.2, HarfRust 0.15.0):
+
+- **Chinese coverage.** Plex Sans SC maps all 6,763 hanzi of GB 2312 and 20,971 CJK unified ideographs in all; of GB 2312's 682 symbols only `§` is missing, and IBM Plex Sans has it, so the fallback chain covers it.
+- **Shaping.** HarfRust 0.15.0, the shaper the device uses, produces the same glyph sequence as HarfBuzz for all 23 test strings (Devanagari conjuncts, reph, reordered i-matra; Arabic joining, lam-alef, Arabic-Indic digits; Chinese with full-width punctuation), with no missing or dotted-circle glyphs. Glyph positions and parley's line layout are not checked yet.
+- **Digits.** Plex Mono and Plex Sans have only Western digits; Plex Sans Arabic adds Arabic-Indic and extended Arabic-Indic digits, Plex Sans Devanagari adds Devanagari digits. Western digits are tabular in every family (600 units); the script digits are proportional, and none of the families has a `tnum` feature.
+- **Storage.** Plex Sans SC Regular is 6.97 MB as an OTF (the Noto Sans SC subset in the i18n research is 8.33 MB); a GB 2312 subset of it, with ASCII, CJK punctuation and full-width forms, is 2.34 MB.
+
+Decided on 2026-10-23 from these results:
+
+- **CJK font:** IBM Plex Sans SC, not a Noto subset: it covers the launch locale, matches the rest of Plex, and is smaller. The image ships it complete at the weights the type scale uses (Regular and SemiBold, about 14 MB), so rare characters in library metadata never fall back; no first-boot subset.
+- **Technical values** (formats, sample rates, bit depths, timestamps in diagnostics) use Western digits in IBM Plex Mono in every locale, so they stay aligned. Other numbers (the time, track numbers, counts) follow the locale's digits through the script's own Plex family.
 
 ### 9.5 Right-to-left
 
-Arabic makes right-to-left a launch requirement (SYS-025). Layouts mirror: leading and trailing swap, horizontal sequences reverse, directional icons (back, forward, chevrons, progress direction) flip. Media transport controls (previous, play/pause, next) and the seek bar's time direction do not mirror, following platform practice (the exact rule set is **UNVERIFIED**). Slint does not mirror layouts yet ([#2294](https://github.com/slint-ui/slint/issues/2294)), so the mirroring comes from OpenDAP's `.slint` generator. Tokens are written in logical terms (start, end), never left and right.
+Arabic makes right-to-left a launch requirement (SYS-025). Layouts mirror: leading and trailing swap, horizontal sequences reverse, directional icons (back, forward, chevrons, progress direction) flip. Media transport controls (previous, play/pause, next) and the seek bar's direction do not mirror: they show the direction of the tape, not of reading, and physical players look the same everywhere ([Material Design, bidirectionality](https://m2.material.io/go/design-bidirectionality), checked 2026-10-23). Volume, which stands for a physical order too, does not mirror either (§15.1). Slint does not mirror layouts yet ([#2294](https://github.com/slint-ui/slint/issues/2294)), so the mirroring comes from OpenDAP's `.slint` generator. Tokens are written in logical terms (start, end), never left and right.
 
 ## 10. Spacing, radii, borders and elevation
 
@@ -536,7 +561,7 @@ On screen this covers button groups and segmented controls, for example gain, fi
 | Part | Rule | Token |
 |---|---|---|
 | Outer ends | Full capsule radius on the first and last segment's outer side; square inner corners | `radius.group-outer` (= `radius.pill`) |
-| Splits | One divider style per group, gap or line, never mixed | `size.group-divider` (1 px, proposal) with `semantic.border.group-divider`, or `space.group-gap` (2 px, proposal) |
+| Splits | One divider style per group, gap or line, never mixed | `size.group-divider` (1 px) with `semantic.border.group-divider`, or `space.group-gap` (2 px) |
 | Segments | Equal height; equal width unless the labels are of very different lengths; each meets the touch minimum (§8.3) | — |
 | Selected segment | Tonal fill (`surface-active`) with a non-colour cue (weight, icon or indicator); orange only when the group is the screen's primary action | — |
 | Right-to-left | Segment order mirrors with the layout, except groups that stand for a physical order (volume, transport) | — |
@@ -572,7 +597,7 @@ How this design direction fits the decisions already taken.
 ### 18.2 The display: 320 × 480 at about 166 ppi
 
 - The touch faceplate's panel is 3.5", 320 × 480 portrait, active area 48.96 × 73.44 mm, about 166 ppi ([faceplate-touch ADR 0001](https://github.com/opendap-project/faceplate-touch/blob/main/docs/adr/0001-focus-lcds-e35gh-display.md); [i18n research](https://github.com/opendap-project/system/blob/main/docs/research/2026-10-text-input-and-i18n.md) §6). One pixel is 0.153 mm, so 44 px ≈ 6.7 mm.
-- Token pixels are panel pixels on the T1: one logical pixel per physical pixel (a scale factor of 1; **proposal**). On Desktop and the web, CSS pixels follow the host's scaling, so the same token is physically larger there.
+- Token pixels are panel pixels on the T1: one logical pixel per physical pixel (a scale factor of 1). On Desktop and the web, CSS pixels follow the host's scaling, so the same token is physically larger there.
 - Minimum targets are defined in millimetres (§8.3). The on-screen keyboard's 32 px keys (4.9 mm) are the documented exception, compensated by 46 px rows, long-press alternates and hit-target correction.
 - Faceplates are interchangeable: other panels convert the same millimetre minimums at their own density.
 
@@ -639,11 +664,19 @@ Decided on 2026-10-22 (under the maintainers' delegation):
 
 - **Processing colour.** Updates and other long system operations use `info` blue on screen, matching the status LED's blue breathing (T1 controls spec). Violet `processing` is reserved for computational visualisations (for example DSP or analysis views), never for system state.
 - **Greys.** The token list is canonical: `text-muted` `#939BA3` for muted text (passes AA) and `border` `#343A40` for borders. `graphite.500` `#737C85` is kept only for icons and large text, and `graphite.700` `#3A4148` for separators.
-- **Button groups.** Divider 1 px and gap 2 px are the starting values, confirmed on the prototype panel.
+- **Button groups.** Divider 1 px and gap 2 px.
 
-Open, to be set on the prototype:
+Decided on 2026-10-23 (under the maintainers' delegation):
 
-- **Orange validation.** The brand orange against the physical Action button part, measured under the same light.
-- **Type scale.** Sizes and line heights for the 166 ppi panel.
-- **Primary target size.** The larger size for primary and frequent actions (§8.3).
-- **Fonts.** The UNVERIFIED items in §9.4, and Plex Sans SC versus a Noto CJK subset for storage.
+- **Type scale.** Seven sizes from 11 to 32 px with their line heights (§9.3); 11 px is the minimum.
+- **Primary target size.** 9.8 mm (64 px) for the screen's primary action, 7.9 mm (52 px) for frequent actions, 6.7 mm (44 px) minimum for everything else (§8.3).
+- **Fonts.** IBM Plex Sans SC for Chinese, shipped complete; Western digits in Plex Mono for technical values in every locale (§9.4).
+- **Scale factor.** One token pixel is one panel pixel on the T1 (§18.2).
+- **Orange validation method.** The physical Action part matches `orange.500` when its colour, measured with a spectrophotometer under D65, is within ΔE00 2.0 of `#FF6A2A` in CIELAB; the same check applies to every edition.
+
+Pending, because they need the prototype:
+
+- **The orange measurement** on the first Action parts, with the method above.
+- **The type scale and target sizes on the real panel:** confirm or adjust after reading and using them on the prototype display; the values above are what the software is built with until then.
+- **Glyph positions and line layout** through parley, on the device.
+- **Effects on Slint** (§18.1): which of the circular-gradient, pre-rendered or GPU-texture routes meets the frame and power budgets, measured on the T1.

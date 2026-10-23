@@ -320,7 +320,7 @@
           "ui-monospace",
           "monospace"
         ],
-        "$description": "Technical values, timestamps, identifiers, diagnostics. Latin only: per-script fallback is an open question"
+        "$description": "Technical values, timestamps, identifiers, diagnostics. Latin only: technical values use Western digits in every locale (decided 2026-10-23)"
       }
     },
     "weight": {
@@ -334,11 +334,102 @@
       "semibold": {
         "$value": 600
       }
+    },
+    "size": {
+      "$type": "dimension",
+      "display": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "headline": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "title": {
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      "body-large": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "body": {
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        }
+      },
+      "label": {
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        }
+      },
+      "caption": {
+        "$value": {
+          "value": 11,
+          "unit": "px"
+        },
+        "$description": "The minimum text size"
+      }
+    },
+    "line-height": {
+      "$type": "dimension",
+      "display": {
+        "$value": {
+          "value": 38,
+          "unit": "px"
+        }
+      },
+      "headline": {
+        "$value": {
+          "value": 30,
+          "unit": "px"
+        }
+      },
+      "title": {
+        "$value": {
+          "value": 26,
+          "unit": "px"
+        }
+      },
+      "body-large": {
+        "$value": {
+          "value": 22,
+          "unit": "px"
+        }
+      },
+      "body": {
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      "label": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "caption": {
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        }
+      }
     }
   },
   "space": {
     "$type": "dimension",
-    "$description": "4 px base. On the T1, 1 px is one panel pixel (0.153 mm at about 166 ppi; scale factor 1 is a proposal).",
+    "$description": "4 px base. On the T1, 1 px is one panel pixel (0.153 mm at about 166 ppi; scale factor 1).",
     "1": {
       "$value": {
         "value": 4,
@@ -398,7 +489,7 @@
         "value": 2,
         "unit": "px"
       },
-      "$description": "Gap between segments of a button group when a gap is used instead of a divider (proposal)"
+      "$description": "Gap between segments of a button group when a gap is used instead of a divider"
     }
   },
   "size": {
@@ -408,7 +499,7 @@
         "value": 1,
         "unit": "px"
       },
-      "$description": "Divider stroke between segments of a button group (proposal)"
+      "$description": "Divider stroke between segments of a button group"
     },
     "target-min": {
       "$value": {
@@ -416,6 +507,20 @@
         "unit": "px"
       },
       "$description": "Minimum touch target: 6.7 mm on the T1 panel. The on-screen keyboard (32 x 46 px keys) is a documented exception"
+    },
+    "target-primary": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      },
+      "$description": "The screen's primary action (for example play/pause): 9.8 mm on the T1 panel"
+    },
+    "target-frequent": {
+      "$value": {
+        "value": 52,
+        "unit": "px"
+      },
+      "$description": "Frequent actions (skip, back, like): 7.9 mm on the T1 panel"
     }
   },
   "radius": {
