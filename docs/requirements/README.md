@@ -25,9 +25,11 @@ Requirements for the official UI components and design system of Blackbird OS.
 | DS-019 | Icons shall come from one open icon set matched to the typeface, at whole-pixel strokes, with visible labels except for the standard transport, volume and status glyphs, and an accessible name on every icon-only control. | must | Confirmed |
 | DS-020 | Long text shall be cut with an ellipsis, never scrolled automatically, and its full text shall always be reachable. | must | Confirmed |
 | DS-021 | OpenDAP shall have its own icon library, addressed by semantic names, which themes and derivatives can redraw icon by icon. | must | Confirmed |
+| DS-022 | The design system shall be defined for any display and input set, in units that keep physical size and visual angle (design pixels), with layout classes each optimised for its characteristics; the T1 is the reference, not the rule. | must | Confirmed |
 
 ## Context
 
+- DS-022 (maintainers, 2026-10-23): the UI and design system must not assume one hardware's characteristics as the only valid ones, while seeking the best optimisation for each (SYS-068, system ADR 0013). Design system §18.2.
 - DS-021 (maintainers, 2026-10-23): an icon library of OpenDAP's own, a fork of another or at least the ability to customise. Built as OpenDAP Icons in Carbon's grammar on a 24 px grid ([`icons/`](../../icons/README.md)); replacement by name covers customisation.
 - DS-015 to DS-020 (2026-10-23): decided under the maintainers' delegation from the [small-screen interface and accessibility research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-small-screen-ui-accessibility.md), after their review of the first mockups (too wide margins, mechanical spacing, tabs drawn as button groups, a phone-like structure). Values in the [design system](../specs/design-system.md) §8.3, §9.3, §9.6, §9.7, §10.1 and §15.
 - DS-014 (maintainers, 2026-10-23): a 3.5" screen is not a phone; the values are in the design system §8.3, from the [small-screen research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-controls-gestures-small-screen.md).

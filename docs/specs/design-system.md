@@ -316,7 +316,7 @@ Do not add a conventional app launcher, dashboards or complex navigation only be
 
 **One instrument, not a small phone.** The screen and the four body buttons are one interface, and familiar mobile patterns are used only after asking what they do on this device ([interface mockups](https://github.com/opendap-project/t1/blob/main/renders/web/ui-mockups.html)):
 
-- **Natural mapping.** What a button does is drawn beside it: volume on the left edge between Volume + and Volume −, power choices next to Main (a second press of Main confirms power off), an edge mark beside Action when Action does something other than play/pause. The controls' heights on the panel (about 38, 144 and 226 px from the top on the left; 90 px on the right) come from the concept art and are to be confirmed with the case.
+- **Natural mapping.** What a control does is drawn beside it, wherever the [device description](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) places it: the volume level beside the volume controls, power choices beside the control whose role is `main` (a second press of it confirms power off), an edge mark beside the `action` control when it does something other than play/pause. When a role has no physical control, its function moves to the screen. On the T1 reference board the controls sit at about 38 (Action), 144 and 226 px (Volume + and −) on the left edge and 90 px (Main) on the right, from the concept art, to be confirmed with the case.
 - **Music is home.** The T1 wakes in Now Playing; the library lies below it, the queue to its right, details below the player. No bottom tab bar, no launcher.
 - **Content, not chrome.** Type, artwork and hairlines carry structure: no card inside a card, no floating action button, no hamburger, no tile grid for status. The status bar unfolds into its own detail, item by item in the same order.
 - **Engineered clarity.** The signal path is drawn as a chain, profiles as stops on the axis below, technical values as a right-aligned mono readout.
@@ -329,9 +329,9 @@ Every screen has a **primary** level (the current task or the most important inf
 
 ### 8.3 Touch targets
 
-The T1's panel has the original iPhone's size and density (320 × 480 at about 166 ppi), so a phone layout cannot be shrunk onto it: targets are sized in millimetres for one-handed thumb use (DS-014). Evidence and sources: [buttons, gestures and touch on a small screen](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-controls-gestures-small-screen.md).
+Targets are defined in millimetres, so they hold on any display (§18.2). On the T1 reference panel, which has the original iPhone's size and density (320 × 480 at about 166 ppi), a phone layout cannot be shrunk onto it: targets are sized in millimetres for one-handed thumb use (DS-014). Evidence and sources: [buttons, gestures and touch on a small screen](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-controls-gestures-small-screen.md).
 
-| Target | Minimum | On the T1 panel (166 ppi) |
+| Target | Minimum | On the T1 reference panel (166 ppi) |
 |---|---|---|
 | Primary action (one per screen, for example play/pause) | 9.8 mm | 64 × 64 px (`size.target-primary`) |
 | Frequent actions (skip, back, like) | 7.9 mm | 52 × 52 px (`size.target-frequent`) |
@@ -408,7 +408,7 @@ Avoid wide tracking, tiny uppercase labels and condensed futuristic faces. Upper
 
 Consistent line height; no long uppercase passages; a clear difference between primary and secondary text; no small text over plasma or thermal effects; the minimum type size is tested on the target display.
 
-The type scale (tokens `font.size.*` and `font.line-height.*`; revised 2026-10-23 under the maintainers' delegation, to be checked on the prototype panel; DS-015). It is sized for a **35 cm** reading distance: character height should be at least 16 minutes of arc where legibility matters and 20–22′ is preferred (ANSI/HFS 100, as quoted in the FAA Human Factors Design Standard). The first scale (14 px body, 11 px caption) fell below 16′ beyond about 33 cm. On the T1 one pixel is 0.153 mm (§18.2); cap heights are IBM Plex Sans's (0.698 em):
+The type scale (tokens `font.size.*` and `font.line-height.*`; revised 2026-10-23 under the maintainers' delegation, to be checked on the prototype panel; DS-015). It is sized by visual angle for the handheld distance class, **35 cm** (other classes scale with their distance, §18.2): character height should be at least 16 minutes of arc where legibility matters and 20–22′ is preferred (ANSI/HFS 100, as quoted in the FAA Human Factors Design Standard). The first scale (14 px body, 11 px caption) fell below 16′ beyond about 33 cm. On the T1 one pixel is 0.153 mm (§18.2); cap heights are IBM Plex Sans's (0.698 em):
 
 | Role | Size / line height (px) | Cap height | At 35 cm | Use |
 |---|---|---|---|---|
@@ -677,12 +677,19 @@ How this design direction fits the decisions already taken.
 - Tokens are canonical in `tokens/opendap.tokens.json` and generated into Slint globals and CSS custom properties (DS-008). The generator is not written yet.
 - Slint 1.18.1 draws linear, conic and **circular** radial gradients only ("only circular gradients are supported", [Slint reference](https://github.com/slint-ui/slint/blob/v1.18.1/docs/astro/src/content/docs/reference/property-types/colors-and-brushes.mdx)), and has no general blur or displacement filter. On the device, the elliptical plasma field is a circular gradient stretched by its element or a pre-rendered image, and blur, glow and thermal displacement are pre-rendered textures or an application-rendered GPU texture. Which of these meets the budgets is **UNVERIFIED** until measured.
 
-### 18.2 The display: 320 × 480 at about 166 ppi
+### 18.2 Displays: any display, each one optimised
 
-- The touch faceplate's panel is 3.5", 320 × 480 portrait, active area 48.96 × 73.44 mm, about 166 ppi ([faceplate-touch ADR 0001](https://github.com/opendap-project/faceplate-touch/blob/main/docs/adr/0001-focus-lcds-e35gh-display.md); [i18n research](https://github.com/opendap-project/system/blob/main/docs/research/2026-10-text-input-and-i18n.md) §6). One pixel is 0.153 mm, so 48 px ≈ 7.4 mm.
-- Token pixels are panel pixels on the T1: one logical pixel per physical pixel (a scale factor of 1). On Desktop and the web, CSS pixels follow the host's scaling, so the same token is physically larger there.
-- Minimum targets are defined in millimetres (§8.3). The on-screen keyboard's 32 px keys (4.9 mm) are the documented exception, compensated by 46 px rows, long-press alternates and hit-target correction.
-- Faceplates are interchangeable: other panels convert the same millimetre minimums at their own density.
+The design system is written for any display, and optimised for each one it meets (DS-022, SYS-068). Nothing in it assumes one panel as the only valid one.
+
+- **Design pixels.** Every size in this document and in the tokens is in **design pixels**. A design pixel is defined by angle, not by a panel: 0.153 mm seen from 35 cm (about 1.5 minutes of arc), which is one physical pixel on the T1 reference panel.
+- **Scale.** The shell computes each display's scale from its physical size and the distance class in the [device description](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) §3: `scale = (display pixels per mm × 0.153) × (distance ÷ 35 cm)`. It rounds to steps the renderer draws crisply. When a display's size is unknown, it falls back to a scale of 1, as GNOME does. Millimetre minimums (§8.3) therefore hold on every display, and type keeps its visual angle (§9.3).
+- **Layout classes,** each designed for its characteristics rather than scaled from another: small portrait handheld (the T1's), small landscape, round, monochrome or character displays, and no display at all, served through voice guidance and the buttons. Templates implement every class they are offered in, as they implement every input profile (§13).
+- **Shape and insets.** Rounded corners, round displays and cutouts come from the description as safe insets; content and targets stay inside them.
+- **Technology.** OLED, LCD, e-paper and monochrome displays get their own treatment of colour, motion and refresh (an e-paper class draws no motion; an OLED class keeps large dark areas truly black).
+- **The T1 reference panel:**
+  - 3.5", 320 × 480 portrait, active area 48.96 × 73.44 mm, about 166 ppi, so 48 px ≈ 7.4 mm and the scale is 1 ([faceplate-touch ADR 0001](https://github.com/opendap-project/faceplate-touch/blob/main/docs/adr/0001-focus-lcds-e35gh-display.md));
+  - its on-screen keyboard's 32 px keys (4.9 mm) are the documented exception, compensated by 46 px rows, long-press alternates and hit-target correction;
+  - on OpenDAP Desktop and the web, design pixels follow the host's scaling and distance class.
 
 ### 18.3 Fluidity, effects and battery
 
@@ -756,7 +763,7 @@ Decided on 2026-10-23 (under the maintainers' delegation):
 - **Target sizes.** 9.8 mm (64 px) for the screen's primary action, 7.9 mm (52 px) for frequent actions, 7.4 mm (48 px) for any other target, 1.2 mm (8 px) between hit areas (§8.3).
 - **Gestures.** Back from the leading edge, the companion screen from the trailing edge, more from the bottom, notifications from the status bar (§8.5).
 - **Fonts.** IBM Plex Sans SC for Chinese, shipped complete; Western digits in Plex Mono for technical values in every locale (§9.4).
-- **Scale factor.** One token pixel is one panel pixel on the T1 (§18.2).
+- **Scale factor.** One design pixel is one panel pixel on the T1 reference panel; other displays scale by size and distance (§18.2).
 - **Orange validation method.** The physical Action part matches `orange.500` when its colour, measured with a spectrophotometer under D65, is within ΔE00 2.0 of `#FF6A2A` in CIELAB; the same check applies to every edition.
 
 Pending, because they need the prototype:
