@@ -8,8 +8,8 @@ vendor/tabler-icons/ and chosen in map.toml, used as upstream draws it. OpenDAP 
 where Tabler has none (OWN_24), in Tabler's style.
 
 It writes:
-  svg/24/<name>.svg  interface icons (2 px stroke at 24 px)
-  svg/16/<name>.svg  status-bar icons (the same glyphs with a 1.5 stroke, 1 px at 16 px)
+  ../export/icons/24/<name>.svg  interface icons (2 px stroke at 24 px)
+  ../export/icons/16/<name>.svg  status-bar icons (the same glyphs with a 1.5 stroke, 1 px at 16 px)
   icons.json         the catalogue: name, grid, category, default accessible label, style, source
   ../renders/web/icons.html  the preview at real sizes
 
@@ -22,6 +22,7 @@ import re
 import tomllib
 
 HERE = pathlib.Path(__file__).resolve().parent
+OUT = HERE.parent / "export" / "icons"
 VENDOR = HERE / "vendor" / "tabler-icons"
 # REUSE-IgnoreStart
 HEADER = "<!-- SPDX-FileCopyrightText: 2026 The OpenDAP Project -->\n<!-- SPDX-License-Identifier: MPL-2.0 -->\n"
@@ -206,14 +207,14 @@ def svg(grid, body, source):
 def main():
     catalogue, written = [], set()
     for grid, name, category, label, body, source in glyphs():
-        out = HERE / "svg" / str(grid)
+        out = OUT / str(grid)
         out.mkdir(parents=True, exist_ok=True)
         (out / f"{name}.svg").write_text(svg(grid, body, source))
         written.add(out / f"{name}.svg")
         style = "filled" if body.startswith(f"<g {FILLED}") else "outline"
         catalogue.append({"name": name, "grid": grid, "category": category, "label": {"en": label},
                           "style": style, "source": source})
-    for stale in set((HERE / "svg").glob("*/*.svg")) - written:
+    for stale in set(OUT.glob("*/*.svg")) - written:
         stale.unlink()
     names = [c["name"] for c in catalogue]
     assert len(names) == len(set(names)), "duplicate icon names"

@@ -39,5 +39,5 @@ The catalogue [`icons.json`](icons.json) lists each icon's name, grid, category,
 
 ## Licence
 
-- **Tabler's glyphs**, the vendored originals and the files in `svg/` built from them: MIT, © 2020-2026 Paweł Kuna. Each generated file says so in its header.
+- **Tabler's glyphs**, the vendored originals and the files in `export/icons/` built from them: MIT, © 2020-2026 Paweł Kuna. Each generated file says so in its header.
 - **OpenDAP's own glyphs, the build and the catalogue:** MPL-2.0, like the rest of the design system's assets (REUSE).

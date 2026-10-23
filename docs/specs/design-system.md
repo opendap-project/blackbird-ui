@@ -314,7 +314,7 @@ The T1 is an audio player, not a general-purpose smartphone. The interface puts 
 
 Do not add a conventional app launcher, dashboards or complex navigation only because they are familiar from smartphones.
 
-**One instrument, not a small phone.** The screen and the four body buttons are one interface, and familiar mobile patterns are used only after asking what they do on this device ([interface mockups](https://github.com/opendap-project/t1/blob/main/renders/web/ui-mockups.html)):
+**One instrument, not a small phone.** The screen and the four body buttons are one interface, and familiar mobile patterns are used only after asking what they do on this device ([interface mockups](https://github.com/opendap-project/blackbird-ui/blob/main/renders/web/ui-mockups.html)):
 
 - **Natural mapping.** What a control does is drawn beside it, wherever the [device description](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) places it: the volume level beside the volume controls, power choices beside the control whose role is `main` (a second press of it confirms power off), an edge mark beside the `action` control when it does something other than play/pause. When a role has no physical control, its function moves to the screen. On the T1 reference board the controls sit at about 38 (Action), 144 and 226 px (Volume + and −) on the left edge and 90 px (Main) on the right, from the concept art, to be confirmed with the case.
 - **Music is home.** The T1 wakes in Now Playing; the library lies below it, the queue to its right, details below the player. No bottom tab bar, no launcher.
@@ -651,6 +651,15 @@ Each job has its control (DS-018); they are not interchangeable:
 - **Strokes in whole pixels** (2 px at 24 and 32); a scaled master that lands on 1.25 or 1.5 px is redrawn, not shipped.
 - **Filled** glyphs for learned, stateful controls (play/pause, favourite on); outline for the rest.
 - **Labels:** visible words on every icon except the transport set, volume and the status-bar glyphs; every icon-only control has an accessible name for its function, and toggles expose their state separately. Long press is never the only way to learn what a control does.
+
+### 15.4 Splash screen
+
+What the screen shows while the OS loads (blackbird-os OS-035): the OpenDAP vertical lockup (`brand/svg/opendap-vertical-light.svg`, mark above "OpenDAP"), light, centred on `semantic.bg`, at 40 % of the display's short side. Nothing else: no text, no progress bar, no console.
+
+- **Minimum time:** 5 s on screen, so it is seen as an intended moment while the system loads, not as a flash (maintainers, 2026-10-23). If the interface is ready sooner it waits; if not, the splash screen stays until it is.
+- **To the interface:** a fade of `motion.duration.slow` (320 ms). With reduced motion, no fade.
+- **Who draws it:** the boot UI (`odap-boot`) from the moment a display exists, then the shell's first frames, from the same rasterization (system `opendap-splash`), so the hand-over shows no change. On a board with a boot-loader logo, that logo is the same lockup.
+- **The same place** shows the boot-mode menu, progress of updates that need a reboot and other screens that keep the system from normal use, in the same visual language. Updates that do not need a reboot happen in the background, with the system in use.
 
 ## 16. Product renders
 
