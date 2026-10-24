@@ -67,7 +67,7 @@ How OpenDAP's interface is put together, for whoever writes an activity or a com
 
 - **Slint gives:** `HorizontalLayout` and `VerticalLayout` (one dimension: `spacing`, `padding`, `alignment`, stretch factors, minimum, preferred and maximum sizes), `FlexboxLayout` (CSS Flexbox with wrapping), `GridLayout`; minimum, preferred and maximum sizes propagate up; elements without `x` and `y` are centred in their parent.
 - **Rules:**
-  - **Stacks for almost everything:** a vertical stack per screen, horizontal stacks for rows. `FlexboxLayout` only where items must wrap (chips, a cover grid that reflows); `GridLayout` only where columns must align (a readout table).
+  - **One model per job** (the table below), chosen by what the content is, never by habit. Constraint solvers (Cassowary, Auto Layout, `ConstraintLayout`) are not used: their cost and their ambiguous or unsatisfiable layouts show only at run time, which is why SwiftUI, Compose and Flutter moved to stacks and single-pass constraints.
   - **Spacing is proximity** (design system §10.1, DS-017): a stack's spacing is a space token (`space-unit` within a unit, `space-group` within a group, `space-section` between groups); never a number at the call site.
   - **Side margins belong to groups,** so lists run the full width under them (§15.2).
   - **Logical directions:** `start` and `end` in every component's API; the `Layout` context mirrors them for right-to-left (§9.5); transport and physical-order groups do not mirror.
@@ -75,7 +75,64 @@ How OpenDAP's interface is put together, for whoever writes an activity or a com
   - **Explicit position only for overlays** (a badge, a focus ring, a toast); always set `x` and `y` there, since Slint centres what has none.
   - **A fixed size inside a stack caps the stack.** Slint gives a layout the smallest maximum of its children across its axis, so one element with a fixed width (a label sized to its text) makes the whole column that narrow. Put such an element in a row aligned to the start, or let it stretch.
 
-### 6.1 Container and content
+**Which model when** (CSS Flexbox and Grid, SwiftUI, Compose, Flutter, Figma's auto layout; Yoga and Taffy show flex and grid cover applications on predictable engines):
+
+| Model | For | Blackbird UI | OpenDAP examples |
+|---|---|---|---|
+| Stack (one axis) | Almost everything: children along one axis, with a gap, alignment and growth | `Stack` (vertical), `Row` | A screen's spine (header, content, playing strip); a settings row (icon, label filling, value, chevron); the status bar (start group, fill, end group); the power menu |
+| Flow (wrap) | Items of their own size that continue on the next line, a few dozen at most | `Wrap` (Slint's `FlexboxLayout`) | Chips, format badges (FLAC 24/96, DSD) |
+| Grid (aligned tracks) | Columns that must line up across rows | `ReadoutTable`, `Keyboard` (Slint's `GridLayout`, `colspan`) | The signal path's readouts, the on-screen keyboard, a specification sheet |
+| Overlay (z inside one box) | Layers within one element | absolute children, always `x` and `y` | A badge on a cover, a focus ring, progress over the art |
+| Anchored | Placed by another element, outside its container | `Overlay` (§9) | A popover, a context menu |
+| Lazy (virtualized) | Unbounded data | `ListView`; `CoverGrid` (a list of rows, columns by the space: auto-fit) | Every library list, the cover grid, search results (no limits, T1-046) |
+| Scroll composition | Mixed scroll content: a collapsing header, sticky sections, a list then a grid | `Scroll` with `SectionHeader` (sticky) and `CollapsingHeader` (transforms only) | An album (art header, then tracks); an artist (bio, a row of albums, tracks); A–Z letters |
+| Adaptive | The same content, arranged by the space it has | `AdaptivePair` (a label and its value beside or under, SwiftUI's `ViewThatFits` for the commonest case, decided from the width its container gives, never its own), the `Layout` context's layout class | Now Playing: art above the controls, or beside them when wider; a setting's value inline, or under a long label; list and detail side by side on OpenDAP Desktop |
+| Custom | A geometry no generic model expresses, measured in one pass | its own component | A radial dial, a waveform, a spectrum |
+
+### 6.1 Spacing
+
+- **Scale:** a 4 px base, the design system's space tokens (§10.1), in design px times `unit`: primitive steps, then semantic aliases (`space-unit`, `space-group`, `space-section`, `space-margin`, `space-target-gap`). A theme or a density mode replaces the layer, never a call site.
+- **The container owns the space** (Every Layout's stack; Slint has no margins, which fits): a gap between children, padding inside the container, and no element ever spaces itself from its neighbours. Nothing collapses, nothing doubles.
+- **Proximity reads as grouping** (Gestalt, DS-017): each step at least about 1.5 to 2 times the one below, so a unit, a group and a section read apart without lines.
+- **Optical, not geometric:** measured from the ink (a text's cap height, an icon's visual weight), with the corrections as tokens (`play` nudged by its optical offset), never as numbers at a call site.
+- **Rhythm:** line heights on the 4 px grid, so stacked text lands on it.
+- **Density:** a compact mode tightens the semantic gaps; it never shrinks a touch target (§8.3).
+- **Insets:** logical (`start`, `end`), mirrored for right to left; the system's insets (the status bar, a docked keyboard: `Window.safe-area-insets` and the shell's content area, system input events §3.2.1) applied once, at the screen's root.
+
+### 6.2 Alignment
+
+- **Main and cross axis** (CSS Box Alignment): `start` by default; `center` only for content with one focus (Now Playing's art, the power menu); `stretch` for what fills a row; logical, so right to left mirrors it.
+- **Keylines:** the side margin (16 px), and a content keyline after a row's leading icon, so the text of every row starts at the same x (Material's keylines).
+- **Across components** (CSS subgrid): rows of one list share their label and value columns through a `ColumnTrack` context the list publishes (the widest label), not each row by itself.
+- **Baselines:** a row that mixes sizes (a label beside a large value) aligns on the first baseline; Slint has no baseline alignment yet, so a component pads the smaller text by the font metrics' difference inside itself.
+- **Numbers:** tabular figures, aligned to the end, decimals aligned in readouts; a time counter never jitters (IBM Plex Mono's figures are tabular; Plex Sans needs `tnum`, which Slint cannot ask for yet).
+- **Optical:** icons as Tabler draws them in their 24 px box (ADR 0001); a play triangle takes its optical offset.
+
+### 6.3 What a complete layout also defines
+
+| Concept | Rule |
+|---|---|
+| Z-order | Named bands (§9), never numbers |
+| Intrinsic sizing | Minimum, preferred, maximum going up, in one pass; never an intrinsic measure inside a list row (Flutter documents `IntrinsicHeight` as possibly quadratic) |
+| Overflow | Chosen per container (§6.4): wrap, elide, clip or scroll; never content overlapping by accident |
+| Aspect ratio | One primitive (`AspectBox`), not a pair of fixed sizes |
+| Density and scale | One `unit` scale (§18.2) and the density layer above |
+| Text | End ellipsis by default, middle ellipsis for file paths, a line limit where it matters; the full text always in the accessible name |
+| Translation | Room for 30 to 40 % longer short strings (W3C); tested with a pseudo-locale |
+| Adaptive classes | The window's class from the `Layout` context, and each component by its own allocated width; never "if T1" |
+| Text size | Layouts reflow at 200 % text (WCAG 1.4.4, 1.4.10): `AdaptivePair` stacks what no longer fits |
+| Touch target and visual size | The touch area of at least 48 px reaches past a smaller visual (WCAG 2.5.8, §8.3) |
+| Focus geometry | The ring outside the shape, drawn as an overlay, never clipped (§9) |
+| Pixel snapping | Edges snapped to device pixels after the `unit` scale; a hairline is one device pixel; positions rounded with the error carried, so tiles never gap; nested radii: outer = inner + padding |
+| Layout changes | Animated as transforms (FLIP), never a layout pass per frame (§8) |
+| Scroll position | Restored on the way back; the focus kept in view (`FocusReveal`) |
+| Empty, one, many | Each container defines its empty state (ADR 0003), one item, and a very large count, with bounded memory (T1-046, T1-047) |
+
+**Avoid:** absolute positions for layout; a number for a space or a size; a component reading its own size to change it (a binding loop in Slint: read the size the parent gives); breakpoints by device name; a constraint solver; nested intrinsic passes; a layout pass per frame.
+
+**Slint gaps** to report upstream, each with a minimal reproduction: a lazy grid (or virtualization in `FlexboxLayout` and `GridLayout`); horizontal `ListView` virtualization; baseline alignment; OpenType features (`tnum`); an `aspect-ratio` property; the allocated size without a binding loop (a `FlexboxLayout` whose direction follows a width panics with "Recursion detected", so a generic `AdaptiveRow` waits for it); sticky positions in `Flickable`; named grid areas and auto-fit tracks; overscroll and snap hooks (§7).
+
+### 6.4 Container and content
 
 Every element is both: a box its container places, and a container of its own content. Three questions, answered separately and in this order, as CSS, Flutter and SwiftUI separate them: where the box goes (**positioning**), how big it is (**sizing**), and how its content sits inside it (**fit**, **alignment**, **overflow**).
 
@@ -182,7 +239,8 @@ Proposed, for review: album art uses `cover` in tiles and `contain` on Now Playi
 4. Stack wrappers with spacing by proximity tokens (§6): `Stack`, `Row`, `Group`, so no screen writes a spacing number.
 5. Enter, exit and navigation transitions (§8), and layout animation for lists.
 6. `Group`, `Layer`, `Overlay`, `Modal` and `Scrim` (§9), with their effects on focus, touch, the screen reader and the blueprint.
-7. `Cover` (art with its aspect and fit, §6.1) and sticky section labels in `Scroll`.
+7. `Cover` (art with its aspect and fit, §6.4), `AspectBox`, and sticky section labels in `Scroll`.
+8. `Stack`, `Row`, `Wrap` with proximity tokens; `AdaptivePair` and the `Layout` context's layout class; `ColumnTrack`; `CoverGrid`; `ReadoutTable` (§6).
 
 Each one shows in the UI primitives activity (system SYS-071) and in the blueprint mode (ADR 0002).
 
