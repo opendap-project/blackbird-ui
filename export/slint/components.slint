@@ -51,6 +51,15 @@ export global Layout {
     in-out property <bool> rtl;
 }
 
+// A row whose start and end follow the layout's direction (§9.5): `FlexboxLayout` reversed right
+// to left, on one line, stretching as `HorizontalLayout` does. The focus still moves in
+// declaration order, which is reading order either way (start to end).
+export component DirRow inherits FlexboxLayout {
+    flex-direction: Layout.rtl ? FlexboxLayoutDirection.row-reverse : FlexboxLayoutDirection.row;
+    flex-wrap: FlexboxLayoutWrap.no-wrap;
+    alignment: stretch;
+}
+
 // A touch area that follows the gesture rules (system input events §3.2), for every component
 // that acts on a tap: a tap is down and up within the slop before the long-press time; a long
 // press fires while the finger is still down and nothing follows on release; a contact that went
@@ -154,6 +163,10 @@ export component Label inherits Text {
     in property <string> role: "body";
     in property <bool> mono;
     in property <bool> muted;
+    // Aligned to the layout's start, or its end (a value at a row's end): left and right swap right
+    // to left (Slint's `start` follows the text's own direction, not the layout's).
+    in property <bool> end;
+    horizontal-alignment: root.end != Layout.rtl ? TextHorizontalAlignment.right : TextHorizontalAlignment.left;
     font-family: root.mono ? Tokens.font-family-mono : Tokens.font-family-ui;
     font-size: root.role == "title" ? Tokens.font-size-title : (root.role == "label" ? Tokens.font-size-label : (root.role == "caption" ? Tokens.font-size-caption : Tokens.font-size-body));
     font-weight: root.role == "title" ? Tokens.font-weight-semibold : Tokens.font-weight-regular;
@@ -170,9 +183,10 @@ export component Header inherits Rectangle {
     height: Tokens.size-header;
     // Focus on entry lands on the way back when the screen has nothing else first.
     public function focus-back() { if root.can-back { back-fs.focus(); } }
-    HorizontalLayout {
-        padding-right: Tokens.space-margin;
-        padding-left: root.can-back ? 0 : Tokens.space-margin;
+    DirRow {
+        // The way back sits at the start edge, without the margin; the title keeps it at the end.
+        padding-left: Layout.rtl ? Tokens.space-margin : (root.can-back ? 0 : Tokens.space-margin);
+        padding-right: Layout.rtl ? (root.can-back ? 0 : Tokens.space-margin) : Tokens.space-margin;
         spacing: Tokens.space-unit;
         if root.can-back: Rectangle {
             width: Tokens.size-target-min;
@@ -199,14 +213,14 @@ export component Header inherits Rectangle {
             }
             Measure { width: parent.width; height: parent.height; shown: back-touch.has-hover || back-touch.pressed; unit: root.unit; }
         }
-        Label { role: "title"; text: root.title; vertical-alignment: center; wrap: no-wrap; overflow: elide; }
+        Label { role: "title"; text: root.title; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; }
     }
     if Blueprint.on: Rectangle { y: parent.height - 1px; height: 1px; background: Ink.line; }
     // The way back takes the focus as any other control (focus on entry, design system §8.4).
     // One area takes the touch and the focus: the focus scope holds the touch area, so a tap
     // goes back instead of only focusing. Nothing of it exists where there is no way back.
     back-fs := FocusScope {
-        x: 0;
+        x: Layout.rtl ? root.width - self.width : 0;
         width: root.can-back ? Tokens.size-target-min : 0;
         // Out of the focus chain where there is no way back. Never disabled or hidden while it may
         // hold the focus: Slint then keeps its `has-focus` after the focus moves on, and its ring
@@ -232,7 +246,7 @@ export component Header inherits Rectangle {
         back-touch := TapArea {
         unit: root.unit; down => { back-fs.focus(); } enabled: root.can-back; tapped => { root.back(); } }
     }
-    if root.can-back && back-fs.has-focus && FocusVisible.on: Rectangle { x: 0; width: Tokens.size-target-min; border-width: 2px; border-color: Tokens.focus; }
+    if root.can-back && back-fs.has-focus && FocusVisible.on: Rectangle { x: Layout.rtl ? root.width - self.width : 0; width: Tokens.size-target-min; border-width: 2px; border-color: Tokens.focus; }
 }
 
 // A secondary action (§15): a graphite surface with its label; in blueprint, its outline.
@@ -404,7 +418,7 @@ export component ListLine inherits Rectangle {
     accessible-enabled: root.live;
     accessible-description: root.reason != "" ? root.reason : root.detail;
     accessible-action-default => { if root.live { root.clicked(); } }
-    HorizontalLayout {
+    DirRow {
         padding-left: Tokens.space-margin;
         padding-right: Tokens.space-margin;
         spacing: Tokens.space-unit;
@@ -417,7 +431,7 @@ export component ListLine inherits Rectangle {
         Path {
             width: 20px;
             height: 20px;
-            y: (parent.height - self.height) / 2;
+            cross-axis-self-alignment: CrossAxisAlignment.center;
             viewbox-width: 24;
             viewbox-height: 24;
             // Forward points to the end: mirrored right to left.
@@ -480,7 +494,7 @@ export component Toggle inherits Rectangle {
     background: Blueprint.on && touch.pressed ? Blueprint.live.with-alpha(0.2) : (Blueprint.on && touch.has-hover ? Blueprint.interactive.with-alpha(0.1) : transparent);
     border-width: Blueprint.on ? 1px : 0;
     border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
-    HorizontalLayout {
+    DirRow {
         padding-left: Tokens.space-margin;
         padding-right: Tokens.space-margin;
         spacing: Tokens.space-unit;
@@ -495,7 +509,7 @@ export component Toggle inherits Rectangle {
             height: 24px;
             // Disabled: the whole control dims, not only its label (ui-model §5).
             opacity: root.live ? 1 : 0.45;
-            y: (parent.height - self.height) / 2;
+            cross-axis-self-alignment: CrossAxisAlignment.center;
             border-radius: self.height / 2;
             border-width: Blueprint.on ? 1px : 0;
             border-color: Blueprint.ink.with-alpha(root.on ? Blueprint.text : Blueprint.outline);
@@ -880,10 +894,13 @@ export component Segment inherits Rectangle {
     in property <float> unit: 1.0;
     callback clicked();
     height: Tokens.size-target-min;
-    border-top-left-radius: root.first ? self.height / 2 : 0;
-    border-bottom-left-radius: root.first ? self.height / 2 : 0;
-    border-top-right-radius: root.last ? self.height / 2 : 0;
-    border-bottom-right-radius: root.last ? self.height / 2 : 0;
+    // The capsule's ends follow the direction: the first segment is at the right, right to left.
+    property <bool> round-left: Layout.rtl ? root.last : root.first;
+    property <bool> round-right: Layout.rtl ? root.first : root.last;
+    border-top-left-radius: root.round-left ? self.height / 2 : 0;
+    border-bottom-left-radius: root.round-left ? self.height / 2 : 0;
+    border-top-right-radius: root.round-right ? self.height / 2 : 0;
+    border-bottom-right-radius: root.round-right ? self.height / 2 : 0;
     border-width: Blueprint.on ? 1px : 0;
     border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover || root.selected ? 0.9 : 0.6);
     background: Blueprint.on
@@ -1210,11 +1227,11 @@ export component CheckLine inherits Rectangle {
     accessible-label: root.label;
     accessible-checked: root.checked;
     accessible-action-default => { if root.live { root.clicked(); } }
-    HorizontalLayout {
+    DirRow {
         padding-left: Tokens.space-margin;
         padding-right: Tokens.space-margin;
         Label { role: "body"; text: root.label; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; font-weight: root.checked ? Tokens.font-weight-semibold : Tokens.font-weight-regular; }
-        if root.checked: Image { source: @image-url("../icons/24/done.svg"); width: 20px; height: 20px; y: (parent.height - self.height) / 2; colorize: Ink.text; }
+        if root.checked: Image { source: @image-url("../icons/24/done.svg"); width: 20px; height: 20px; cross-axis-self-alignment: CrossAxisAlignment.center; colorize: Ink.text; }
     }
     Rectangle { y: parent.height - Tokens.size-group-divider; height: Tokens.size-group-divider; background: Ink.line; }
     forward-focus: fs;
@@ -1247,12 +1264,12 @@ export component CheckLine inherits Rectangle {
 // —— Values, progress and status ——————————————————————————————————————————————————————————
 
 // A technical value (§15): its label, and the value in mono, right-aligned, Western digits.
-export component Readout inherits HorizontalLayout {
+export component Readout inherits DirRow {
     in property <string> label;
     in property <string> value;
     height: 28px;
     Label { role: "label"; muted: true; text: root.label; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; }
-    Label { role: "label"; mono: true; text: root.value; vertical-alignment: center; horizontal-alignment: right; wrap: no-wrap; }
+    Label { role: "label"; mono: true; text: root.value; vertical-alignment: center; end: true; wrap: no-wrap; }
 }
 
 // A determinate bar (storage, indexing, a dose): its value over its maximum.
@@ -1265,8 +1282,9 @@ export component ProgressBar inherits Rectangle {
     background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.faint) : Tokens.surface-active;
     accessible-role: progress-indicator;
     accessible-value: round(100 * root.value / max(0.0001, root.maximum)) + " %";
+    // It fills from the start edge (§9.5).
     Rectangle {
-        x: 0;
+        x: Layout.rtl ? parent.width - self.width : 0;
         width: parent.width * max(0, min(1, root.value / max(0.0001, root.maximum)));
         border-radius: 2px;
         background: root.tint;
@@ -1284,7 +1302,8 @@ export component LoadingLine inherits Rectangle {
     accessible-label: "Loading";
     property <float> t: root.moving ? mod(animation-tick(), 1400ms) / 1400ms : 0.35;
     Rectangle {
-        x: (parent.width * 1.4) * root.t - parent.width * 0.4;
+        property <length> from-start: (parent.width * 1.4) * root.t - parent.width * 0.4;
+        x: Layout.rtl ? parent.width - self.from-start - self.width : self.from-start;
         width: parent.width * 0.4;
         background: Tokens.state-info;
     }
@@ -1310,14 +1329,15 @@ export component SeekBar inherits VerticalLayout {
         changed(v) => { root.seek(v); }
     }
     HorizontalLayout {
-        Label { role: "caption"; mono: true; muted: true; text: root.elapsed; horizontal-stretch: 1; wrap: no-wrap; }
+        // The seek bar keeps its physical order (§9.5): the elapsed time at the left either way.
+        Label { role: "caption"; mono: true; muted: true; text: root.elapsed; horizontal-stretch: 1; horizontal-alignment: TextHorizontalAlignment.left; wrap: no-wrap; }
         Label { role: "caption"; mono: true; muted: true; text: root.remaining; horizontal-alignment: right; wrap: no-wrap; }
     }
 }
 
 // A state in semantic colour, never by colour alone (DS-010, §15): its icon and its word.
 // `kind`: "success", "warning", "error", "info", "processing".
-export component StatusIndicator inherits HorizontalLayout {
+export component StatusIndicator inherits DirRow {
     in property <string> kind: "info";
     in property <string> label;
     property <color> tint: root.kind == "success" ? Tokens.state-success : (root.kind == "warning" ? Tokens.state-warning : (root.kind == "error" ? Tokens.state-error : (root.kind == "processing" ? Tokens.state-processing : Tokens.state-info)));
@@ -1329,7 +1349,7 @@ export component StatusIndicator inherits HorizontalLayout {
         source: root.kind == "success" ? @image-url("../icons/24/done.svg") : (root.kind == "warning" ? @image-url("../icons/24/warning.svg") : (root.kind == "error" ? @image-url("../icons/24/error.svg") : (root.kind == "processing" ? @image-url("../icons/24/loading.svg") : @image-url("../icons/24/info.svg"))));
         width: 18px;
         height: 18px;
-        y: (parent.height - self.height) / 2;
+        cross-axis-self-alignment: CrossAxisAlignment.center;
         colorize: root.tint;
     }
     Label { role: "label"; text: root.label; vertical-alignment: center; color: root.tint; wrap: no-wrap; overflow: elide; }
@@ -1349,9 +1369,9 @@ export component Toast inherits Rectangle {
     border-color: Tokens.state-info.with-alpha(0.7);
     accessible-role: AccessibleRole.text;
     accessible-label: root.text;
-    HorizontalLayout {
-        padding-left: Tokens.space-margin;
-        padding-right: root.action == "" ? Tokens.space-margin : 0;
+    DirRow {
+        padding-left: Layout.rtl && root.action != "" ? 0 : Tokens.space-margin;
+        padding-right: !Layout.rtl && root.action != "" ? 0 : Tokens.space-margin;
         Label { role: "body"; text: root.text; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; }
         if root.action != "": Button { label: root.action; unit: root.unit; clicked => { root.acted(); } border-width: 0; quiet: true; }
     }
@@ -1404,7 +1424,7 @@ export component EmptyState inherits VerticalLayout {
     alignment: start;
     // A fixed-width icon in a row aligned to the start: alone in the column it would cap the
     // column's width (ui-model §6).
-    HorizontalLayout { alignment: start; Image { source: root.icon; width: 32px; height: 32px; colorize: Ink.muted; } }
+    DirRow { alignment: start; Image { source: root.icon; width: 32px; height: 32px; colorize: Ink.muted; } }
     Rectangle { height: Tokens.space-unit; }
     Text { text: root.title; font-family: Tokens.font-family-ui; font-size: Tokens.font-size-body-large; color: Ink.text; wrap: word-wrap; }
     Label { role: "body"; muted: true; text: root.hint; }
@@ -1436,7 +1456,7 @@ export component ErrorState inherits VerticalLayout {
     accessible-label: root.title + ". " + root.reason;
     // A fixed-width icon in a row aligned to the start: alone in the column it would cap the
     // column's width (ui-model §6).
-    HorizontalLayout { alignment: start; Image { source: @image-url("../icons/24/error.svg"); width: 32px; height: 32px; colorize: Tokens.state-error; } }
+    DirRow { alignment: start; Image { source: @image-url("../icons/24/error.svg"); width: 32px; height: 32px; colorize: Tokens.state-error; } }
     Rectangle { height: Tokens.space-unit; }
     Text { text: root.title; font-family: Tokens.font-family-ui; font-size: Tokens.font-size-body-large; color: Ink.text; wrap: word-wrap; }
     Label { role: "body"; muted: true; text: root.reason; }
@@ -1640,7 +1660,7 @@ export component Stack inherits VerticalLayout {
 }
 
 // A horizontal stack, as `Stack`; its start and end follow the layout's direction.
-export component Row inherits HorizontalLayout {
+export component Row inherits DirRow {
     in property <string> space: "group";
     spacing: root.space == "unit" ? Tokens.space-unit : (root.space == "section" ? Tokens.space-section : Tokens.space-group);
 }
@@ -1649,6 +1669,7 @@ export component Row inherits HorizontalLayout {
 // most, since it is not virtualized.
 export component Wrap inherits FlexboxLayout {
     in property <string> space: "unit";
+    flex-direction: Layout.rtl ? FlexboxLayoutDirection.row-reverse : FlexboxLayoutDirection.row;
     property <length> gap: root.space == "group" ? Tokens.space-group : Tokens.space-unit;
     spacing-horizontal: root.gap;
     spacing-vertical: root.gap;
@@ -1668,7 +1689,7 @@ export component AdaptivePair inherits Rectangle {
     height: root.as-row ? beside.preferred-height : under.preferred-height;
     accessible-role: AccessibleRole.text;
     accessible-label: root.label + ": " + root.value;
-    beside := HorizontalLayout {
+    beside := DirRow {
         visible: root.as-row;
         spacing: Tokens.space-group;
         Label { role: "label"; text: root.label; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; vertical-alignment: center; }
