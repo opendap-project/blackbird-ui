@@ -47,7 +47,7 @@ export component Header inherits Rectangle {
     in property <bool> can-back: true;
     in property <float> unit: 1.0;
     callback back();
-    height: Tokens.size-target-min;
+    height: Tokens.size-header;
     // Focus on entry lands on the way back when the screen has nothing else first.
     public function focus-back() { if root.can-back { back-fs.focus(); } }
     HorizontalLayout {

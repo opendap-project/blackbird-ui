@@ -343,7 +343,7 @@ Targets are defined in millimetres, so they hold on any display (§18.2). On the
 - A hit area may be larger than the drawn control; status-bar icons are not targets of their own.
 - **Side margins are 16 px** (2.4 mm; `space.margin`), leaving 288 px of content width. The 20 px edge-gesture zones overlap the margin; they react only to swipes that start at the edge.
 - **Rows:** 52 px for one line, 60 px for two lines (`size.row`, `size.row-two`); 6–7 one-line rows fit between the header and the playing strip.
-- At most five targets in a row (five 52 px targets fill the 272 px content width).
+- At most five targets in a row: five 48 px targets with their 8 px gaps take 272 of the 288 px content width (five 52 px targets do not fit).
 - Primary and frequent actions sit in the lower half, where the thumb rests; the top holds what is used least, and each of those has a gesture too (§8.5).
 
 For physical controls, evaluate actual size, finger clearance, reach and tactile discrimination rather than applying pixel targets.
@@ -606,7 +606,7 @@ No colour, radius or timing is written outside the tokens without a recorded rea
 
 ## 15. Components
 
-- **Primary action:** round or near-round; the only orange emphasis on the screen; dark foreground on the orange fill (§3.4); a clearly visible pressed state (`brand-pressed`); no persistent glow; an accessible name and state.
+- **Primary action:** its shape follows its content (maintainers, 2026-10-23): a 64 px circle when it is an icon (play/pause in the transport row), a full-width capsule 64 px tall when it is a word (Continue, Pair); the only orange emphasis on the screen; dark foreground on the orange fill (§3.4); a clearly visible pressed state (`brand-pressed`); no persistent glow; an accessible name and state.
 - **Secondary action:** graphite surface; neutral border or tonal separation; white label or icon; orange only for selected or active states.
 - **Tabs:** navigation between views of the same level. Text labels in a row, the current one in `text` with a 2 px underline, the others `text-muted`; no container, no capsule; each tab at least 48 px wide and tall (§15.2).
 - **Button groups and segmented controls:** actions that belong together, or one value chosen from two to five options; see §15.1. Never for navigation.
@@ -770,7 +770,7 @@ Decided on 2026-10-22 (under the maintainers' delegation):
 
 Decided on 2026-10-23 (under the maintainers' delegation):
 
-- **Type scale.** Seven sizes from 11 to 32 px with their line heights (§9.3); 11 px is the minimum.
+- **Type scale.** Seven sizes from 12 to 32 px with their line heights (§9.3); 12 px is the minimum (DS-015; maintainers, 2026-10-23, resolving an earlier 11 px here).
 - **Target sizes.** 9.8 mm (64 px) for the screen's primary action, 7.9 mm (52 px) for frequent actions, 7.4 mm (48 px) for any other target, 1.2 mm (8 px) between hit areas (§8.3).
 - **Gestures.** Back from the leading edge, the companion screen from the trailing edge, more from the bottom, notifications from the status bar (§8.5).
 - **Fonts.** IBM Plex Sans SC for Chinese, shipped complete; Western digits in Plex Mono for technical values in every locale (§9.4).

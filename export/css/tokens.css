@@ -76,6 +76,9 @@
   --size-target-frequent: 52px;
   --size-row: 52px;
   --size-row-two: 60px;
+  --size-status-bar: 28px;
+  --size-header: 48px;
+  --size-playing-strip: 64px;
   --radius-control: 10px;
   --radius-card: 16px;
   --radius-panel: 20px;

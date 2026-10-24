@@ -570,6 +570,27 @@
         "unit": "px"
       },
       "$description": "Two-line list row, §8.3"
+    },
+    "status-bar": {
+      "$value": {
+        "value": 28,
+        "unit": "px"
+      },
+      "$description": "The status bar's height (system SYS-038, shell spec §2)"
+    },
+    "header": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      },
+      "$description": "A screen's header: the way back, the title and its actions"
+    },
+    "playing-strip": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      },
+      "$description": "The playing strip that keeps Now Playing one tap away"
     }
   },
   "radius": {
