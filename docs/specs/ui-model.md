@@ -169,7 +169,7 @@ Constraints go down and sizes go up (§6): a container offers a range, the conte
 | `none` (`preserve`) | At its own size, cut by the box | Pixel art and icons at their drawn size (Tabler at 24 px, design system §15.3) |
 | `scale-down` | `none` unless too big, then `contain` | Third-party art of unknown size |
 
-Proposed, for review: album art uses `cover` in tiles and `contain` on Now Playing, so the whole art is seen where it is the subject.
+Album art uses `cover` in tiles and `contain` on Now Playing, so the whole art is seen where it is the subject (decided by Claude under the maintainers' delegation, best UX (2026-10-24)).
 
 **Alignment** of content within its box: logical (`start`, `center`, `end`, `stretch`), mirrored for right to left (§9.5); a cut content keeps its focal point (the centre by default).
 
