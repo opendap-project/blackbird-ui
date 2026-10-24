@@ -576,7 +576,7 @@
         "value": 28,
         "unit": "px"
       },
-      "$description": "The status bar's height (system SYS-038, shell spec §2)"
+      "$description": "The status bar's height (system SYS-038, composer spec §2)"
     },
     "header": {
       "$value": {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 //
 // Blackbird UI's components for Slint (ADR 0002): the controls of the design system §15, from
-// its tokens, for every OpenDAP application (the product, activities, the shell's layers). Each
+// its tokens, for every OpenDAP application (the product, activities, the OS Shell's layers). Each
 // job has its control (§15.2, DS-018). Each component draws itself in two ways on the same
 // geometry: as the product, and in the blueprint mode (blueprint.slint, SYS-070), as a technical
 // drawing of itself. Import with `import { Button, … } from "@blackbird/slint/components.slint";`.
@@ -99,7 +99,7 @@ export global Ink {
     out property <color> ground: Blueprint.on ? Blueprint.paper : Tokens.bg;
 }
 
-// The ground of a screen; in the blueprint mode, the paper and its 8 px grid (the shell draws
+// The ground of a screen; in the blueprint mode, the paper and its 8 px grid (the composer draws
 // the snap lines over it). It also takes what the focused element leaves (system input events
 // §4.2, design system §8.4), as the bubble phase does:
 // - Action (Enter, Space) while the focus is hidden: the screen's primary action where it
@@ -679,7 +679,7 @@ export component Slider inherits Rectangle {
             if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
             if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
             // ← → step the value by 5 % always (a keyboard's arrows, W3C's slider), mirrored right to
-            // left. The volume buttons (Tab, Shift+Tab from the shell) and ↑ ↓ (the same buttons by
+            // left. The volume buttons (Tab, Shift+Tab from the composer) and ↑ ↓ (the same buttons by
             // their place, design system §8.4) only while locked: Volume + up, Volume − down,
             // never mirrored.
             let less = Layout.rtl ? Key.RightArrow : Key.LeftArrow;
@@ -1365,7 +1365,7 @@ export component StatusIndicator inherits DirRow {
     Label { role: "label"; text: root.label; vertical-alignment: center; color: root.tint; wrap: no-wrap; overflow: elide; }
 }
 
-// A short bar that leaves by itself, with an optional action (Undo) (shell spec §2, conventions
+// A short bar that leaves by itself, with an optional action (Undo) (composer spec §2, conventions
 // §5). The caller removes it after its time.
 export component Toast inherits Rectangle {
     in property <string> text;
@@ -1617,9 +1617,28 @@ export component Overlay inherits PopupWindow {
 }
 
 // The dimmed ground under a modal: it takes every touch below it.
+// What is under an open modal, frosted (ui-model §9, design system §12.3): the runtime fills
+// `frost` when the modal opens (system opendap-media's blur: shrunk, blurred once, nothing per
+// frame), so the layer above reads as frosted glass, not as a darkened sheet. Empty, or with
+// reduce transparency on (an accessibility setting), the scrim is a solid tint instead.
+export global Backdrop {
+    in-out property <image> frost;
+    in-out property <bool> reduce-transparency;
+}
+
 export component Scrim inherits Rectangle {
     callback tapped();
-    background: Blueprint.on ? Blueprint.paper.with-alpha(0.7) : #000000b8;
+    property <bool> frosted: !Blueprint.on && !Backdrop.reduce-transparency && Backdrop.frost.width > 0;
+    background: Blueprint.on ? Blueprint.paper.with-alpha(0.7) : (self.frosted ? transparent : #000000b8);
+    if root.frosted: Image {
+        width: parent.width;
+        height: parent.height;
+        source: Backdrop.frost;
+        image-fit: fill;
+        image-rendering: smooth;
+    }
+    // A graphite tint over the frost, so the dialog's text stays legible whatever is under it.
+    if root.frosted: Rectangle { background: #0b0d10; opacity: 0.24; }
     TouchArea { clicked => { root.tapped(); } }
     // In blueprint, hatched: the area is inert, not empty.
     if Blueprint.on: Rectangle {

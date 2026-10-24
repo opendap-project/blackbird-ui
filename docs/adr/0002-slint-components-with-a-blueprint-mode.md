@@ -8,21 +8,21 @@
 
 - Blackbird OS gets a debug UI mode, off by default and on by a flag, that shows the real interface as a blueprint at run time (system SYS-070). The UI primitives tests become a developer activity (SYS-071), and the mode applies to it and to every activity, element by element.
 - The components had no format yet (`components/`: "Format not defined yet"). Each screen drew its own elements, so no mode could reach them all.
-- The maintainers chose, of three options, that the components draw themselves as blueprints and the shell draws its own references above (regions, physical controls, touches, gestures). The other options were the shell drawing outlines from the accessibility tree only, or both.
+- The maintainers chose, of three options, that the components draw themselves as blueprints and the composer draws its own references above (regions, physical controls, touches, gestures). The other options were the composer drawing outlines from the accessibility tree only, or both.
 - They asked the drawing to use a plan's semiotics: line types, weights, patterns and semantic colours. A physical control is, for the OS, an interactive area with event handlers, so it reacts as one when pressed.
 
 ## Decision
 
-- **Format.** Slint files in `export/slint/`, next to the generated tokens, imported as `@blackbird/slint/components.slint`: the controls of the design system §15 (header, label roles, button, primary action, list line, toggle, slider, segment of a button group). Every OpenDAP application builds from them: the product, activities, and later the shell's layers.
+- **Format.** Slint files in `export/slint/`, next to the generated tokens, imported as `@blackbird/slint/components.slint`: the controls of the design system §15 (header, label roles, button, primary action, list line, toggle, slider, segment of a button group). Every OpenDAP application builds from them: the product, activities, and later the OS Shell's layers.
 - **Two drawings, one geometry.** Each component draws itself as the product, or, with `Blueprint.on`, as a technical drawing of itself (`export/slint/blueprint.slint`). The geometry never changes between the two: size, radii and place stay, so the blueprint shows the real layout.
-- **One semantics for every element and the shell's references** (`Blueprint` global):
+- **One semantics for every element and the composer's references** (`Blueprint` global):
 
   | Meaning | Drawing |
   |---|---|
   | Structure: containers, text, dimensions | Ink (white), hairline |
   | An interactive area (event handlers): button, line, toggle, slider, segment, physical control | `state-success` |
   | Live input on it: pressed, touched, held | `brand-base`, the accent the design system keeps for active states (§15) |
-  | The shell's regions (the status bar), and an element's measure | `state-info` |
+  | The composer's regions (the status bar), and an element's measure | `state-info` |
   | Side margins | `state-warning`, dotted |
   | Edge-gesture zones | `state-processing` |
 

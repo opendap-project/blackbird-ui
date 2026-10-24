@@ -384,7 +384,7 @@ Gesture navigation is supported on touch faceplates (SYS-039); it follows Androi
 | Swipe down on Now Playing | Minimise the player |
 
 - Edge zones are 20 px (3 mm) wide at the sides and the bottom; the top zone is the status bar (28 px), where "swipe down from the status bar" starts. Where two meet, the square is a **corner**, a region of its own (maintainers, 2026-10-23): a contact that starts there belongs to the corner only, never to either edge, whatever the gesture (a tap, a long press, a pan, a swipe, a drag). A swipe from a corner is not an edge swipe; corners have no action yet. Every gesture carries the region it started in: the content, an edge or a corner.
-- Controls that are dragged (the seek bar, sliders, horizontal lists) exclude their area from the side zones, and exclusions stay small. **Not built yet:** the shell recognises edge swipes only in the debug UI mode so far; exclusions come with the system's edge navigation.
+- Controls that are dragged (the seek bar, sliders, horizontal lists) exclude their area from the side zones, and exclusions stay small. **Not built yet:** the composer recognises edge swipes only in the debug UI mode so far; exclusions come with the system's edge navigation.
 - Composite gestures (a pan, drag and drop) and their directives (axis, start, bounds, snap) are system input events §3.2: a drag is free by default and starts after a long press, so a plain move still scrolls.
 - Every gesture has a visible single-tap alternative (back control, chevron, queue control, a "more" control, the status bar), as WCAG 2.2 requires for path gestures and dragging (2.5.1, 2.5.7).
 - Non-touch faceplates navigate with HID keys (§13); gestures are never the only way.
@@ -550,6 +550,8 @@ Only on elements that are actually luminous, or in selected energetic visualisat
 
 Translucency for light guides, overlays and selected atmospheric layers. Text and controls sit on surfaces opaque enough to stay legible.
 
+**Frosted backdrops** (maintainers' direction, 2026-10-24: current patterns, a Gaussian frost rather than a darkened sheet; the recipe decided by Claude under their delegation). What is under a modal is frosted: shrunk four times, blurred once (radius 12 px, three box passes, which approach a Gaussian) and shown under a graphite tint at 24 %, so its shapes read through and the dialog's own surface, opaque, stays legible. It costs one blur when the modal opens and nothing per frame (§17); 0.6 ms for the full screen on the virtual board. With reduce transparency on, the backdrop is the solid tint. The composer will frost live, on the GPU, for the OS Shell's layers and for clients that ask (`ext-background-effect-v1`).
+
 ### 12.4 Effects budget and reduced-effects mode
 
 Every effect costs attention, rendering time and battery. Before adding one, answer:
@@ -670,7 +672,7 @@ What the screen shows while the OS loads (blackbird-os OS-035): the OpenDAP vert
 
 - **Minimum time:** 5 s on screen, so it is seen as an intended moment while the system loads, not as a flash (maintainers, 2026-10-23). If the interface is ready sooner it waits; if not, the splash screen stays until it is.
 - **To the interface:** a fade of `motion.duration.slow` (320 ms). With reduced motion, no fade.
-- **Who draws it:** the boot UI (`odap-boot`) from the moment a display exists, then the shell's first frames, from the same rasterization (system `opendap-splash`), so the hand-over shows no change. On a board with a boot-loader logo, that logo is the same lockup.
+- **Who draws it:** the boot UI (`odap-boot`) from the moment a display exists, then the composer's first frames, from the same rasterization (system `opendap-splash`), so the hand-over shows no change. On a board with a boot-loader logo, that logo is the same lockup.
 - **The same place** shows the boot-mode menu, progress of updates that need a reboot and other screens that keep the system from normal use, in the same visual language. Updates that do not need a reboot happen in the background, with the system in use.
 
 ## 16. Product renders
@@ -703,7 +705,7 @@ How this design direction fits the decisions already taken.
 The design system is written for any display, and optimised for each one it meets (DS-022, SYS-068). Nothing in it assumes one panel as the only valid one.
 
 - **Design pixels.** Every size in this document and in the tokens is in **design pixels**. A design pixel is defined by angle, not by a panel: 0.153 mm seen from 35 cm (about 1.5 minutes of arc), which is one physical pixel on the T1 reference panel.
-- **Scale.** The shell computes each display's scale from its physical size and the distance class in the [device description](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) §3: `scale = (display pixels per mm × 0.153) × (distance ÷ 35 cm)`. It rounds to steps the renderer draws crisply. When a display's size is unknown, it falls back to a scale of 1, as GNOME does. Millimetre minimums (§8.3) therefore hold on every display, and type keeps its visual angle (§9.3).
+- **Scale.** The composer computes each display's scale from its physical size and the distance class in the [device description](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) §3: `scale = (display pixels per mm × 0.153) × (distance ÷ 35 cm)`. It rounds to steps the renderer draws crisply. When a display's size is unknown, it falls back to a scale of 1, as GNOME does. Millimetre minimums (§8.3) therefore hold on every display, and type keeps its visual angle (§9.3).
 - **Layout classes,** each designed for its characteristics rather than scaled from another: small portrait handheld (the T1's), small landscape, round, monochrome or character displays, and no display at all, served through voice guidance and the buttons. Templates implement every class they are offered in, as they implement every input profile (§13).
 - **Shape and insets.** Rounded corners, round displays and cutouts come from the description as safe insets; content and targets stay inside them.
 - **Technology.** OLED, LCD, e-paper and monochrome displays get their own treatment of colour, motion and refresh (an e-paper class draws no motion; an OLED class keeps large dark areas truly black).

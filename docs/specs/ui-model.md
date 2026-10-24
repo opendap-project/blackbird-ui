@@ -97,7 +97,7 @@ How OpenDAP's interface is put together, for whoever writes an activity or a com
 - **Optical, not geometric:** measured from the ink (a text's cap height, an icon's visual weight), with the corrections as tokens (`play` nudged by its optical offset), never as numbers at a call site.
 - **Rhythm:** line heights on the 4 px grid, so stacked text lands on it.
 - **Density:** a compact mode tightens the semantic gaps; it never shrinks a touch target (§8.3).
-- **Insets:** logical (`start`, `end`), mirrored for right to left; the system's insets (the status bar, a docked keyboard: `Window.safe-area-insets` and the shell's content area, system input events §3.2.1) applied once, at the screen's root.
+- **Insets:** logical (`start`, `end`), mirrored for right to left; the system's insets (the status bar, a docked keyboard: `Window.safe-area-insets` and the composer's content area, system input events §3.2.1) applied once, at the screen's root.
 
 ### 6.2 Alignment
 
@@ -263,7 +263,7 @@ Images, icons, video, music, metadata and plots reach the screen or the output a
 
 **Proven:** z-order by named layers, never by numbers (Wayland's layer-shell: background, bottom, top, overlay; Android's window types; iOS's window levels); an overlay that escapes its parent's clipping and stacking wherever it is declared (the web's top layer for dialogs and popovers, Flutter's `Overlay`, Compose's `Popup`); one primitive that makes the rest inert, traps the focus and hides the rest from a screen reader (HTML's modal `dialog` with `inert`, iOS's `accessibilityViewIsModal`); groups that gather without creating a stacking context (a Figma group, against a frame that has an origin and constraints). Avoided: z-index wars and magic numbers; stacking contexts made by accident (CSS `opacity` and `transform` create them); invisible layers that still take touches; focus or a screen reader escaping a modal; drawing order and hit-testing order that differ (iOS's `zPosition` trap).
 
-**System layers** (the shell's, bottom to top; shell spec §2 and §7): `background` → `activity` → `activity-overlay` (the activity's popovers and sheets, still its own surface) → `keyboard` → `system-ui` (status bar and panel, volume, toasts) → `system-view` (the power menu: the full screen, no client gets input) → `trusted` (consent, pairing) → `debug` (the blueprint references) → `touch-indicator`. The last two never take input. A system layer that takes input cancels the activity's contacts and releases its keys (system input events §5.1).
+**System layers** (the composer's bands, bottom to top, where the OS Shell will draw its parts; composer spec §2 and §7): `background` → `activity` → `activity-overlay` (the activity's popovers and sheets, still its own surface) → `keyboard` → `system-ui` (status bar and panel, volume, toasts) → `system-view` (the power menu: the full screen, no client gets input) → `trusted` (consent, pairing) → `debug` (the blueprint references) → `touch-indicator`. The last two never take input. A system layer that takes input cancels the activity's contacts and releases its keys (system input events §5.1).
 
 **In an activity**, four bands, named, in this order: `content`, `raised` (a sticky header, the playing strip), `overlay` (popovers, menus), `modal` (a dialog and its scrim). Slint's `z` orders siblings only and must be a constant, so Blackbird UI's primitives place themselves in their band; no screen writes a `z`.
 
@@ -284,7 +284,7 @@ Images, icons, video, music, metadata and plots reach the screen or the output a
 3. `Scroll`: edge stretch, snapping, nested hand-over, the indicator, to-the-top (§7).
 4. Stack wrappers with spacing by proximity tokens (§6): `Stack`, `Row`, `Group`, so no screen writes a spacing number.
 5. Enter, exit and navigation transitions (§8), and layout animation for lists.
-6. `Group`, `Layer`, `Overlay`, `Modal` and `Scrim` (§9), with their effects on focus, touch, the screen reader and the blueprint.
+6. `Group`, `Layer`, `Overlay`, `Modal` and `Scrim` (§9; the scrim frosts what is under it, `Backdrop`, design system §12.3), with their effects on focus, touch, the screen reader and the blueprint.
 7. `Cover` (art with its aspect and fit, §6.4), `AspectBox`, and sticky section labels in `Scroll`.
 8. `Stack`, `Row`, `Wrap` with proximity tokens; `AdaptivePair` and the `Layout` context's layout class; `ColumnTrack`; `CoverGrid`; `ReadoutTable` (§6).
 

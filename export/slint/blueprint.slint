@@ -12,12 +12,12 @@
 import { Tokens } from "tokens.slint";
 
 // The drawing's semantics, one meaning per colour and line, the same for every element and for
-// the shell's references:
+// the composer's references:
 //   ink, hairline       structure: containers, text, dimensions
 //   interactive         an area with event handlers: a button, a line, a toggle, a slider, a
 //                       segment, a physical control
 //   live                input on it now: pressed, touched, held
-//   region (info)       the shell's regions: the status bar; and an element's measure
+//   region (info)       the composer's regions: the status bar; and an element's measure
 //   margin (warning)    the side margins, dotted
 //   edge (processing)   the edge-gesture zones
 export global Blueprint {
@@ -90,7 +90,7 @@ export component BlueprintGrid inherits Rectangle {
 export component SnapLines inherits Rectangle {
     // Logical pixels per design pixel.
     in property <float> unit: 1.0;
-    // Off where the margins are drawn already (the shell draws them dotted).
+    // Off where the margins are drawn already (the composer draws them dotted).
     in property <bool> margins: true;
     property <length> margin: Tokens.space-margin * root.unit;
     property <length> status: Tokens.size-status-bar * root.unit;
