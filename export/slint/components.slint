@@ -1545,6 +1545,9 @@ export component Layer inherits Rectangle {
 export component Overlay inherits PopupWindow {
     in property <float> unit: 1.0;
     callback dismissed();
+    // Past its first or last element (system input events §3.7: a popover does not wrap, only a
+    // modal does): the runtime sends the opposite key back, as for the screen's ends.
+    callback edge(bool);
     close-policy: close-on-click-outside;
     // Escape (and the way back) closes it: a faceplate without touch is never trapped in it.
     FocusScope {
@@ -1560,6 +1563,12 @@ export component Overlay inherits PopupWindow {
             if e.text == Key.Escape { root.close(); root.dismissed(); return accept; }
             reject
         }
+        FocusScope {
+            width: 0;
+            height: 0;
+            focus-on-click: false;
+            focus-gained(reason) => { if reason == FocusReason.tab-navigation { root.edge(false); } }
+        }
         Panel {
             border-width: 1px;
             border-color: Blueprint.on ? Blueprint.interactive.with-alpha(0.6) : Tokens.border-strong;
@@ -1570,6 +1579,12 @@ export component Overlay inherits PopupWindow {
                 padding: Tokens.space-unit;
                 @children
             }
+        }
+        FocusScope {
+            width: 0;
+            height: 0;
+            focus-on-click: false;
+            focus-gained(reason) => { if reason == FocusReason.tab-navigation { root.edge(true); } }
         }
     }
 }
