@@ -5,7 +5,7 @@ Blackbird UI, the user interface of Blackbird OS: **Engineered Matter**, the Ope
 ## Layout
 
 - `tokens/`: the token file and `generate.py`
-- `export/`: what other repositories read, and only this: `slint/tokens.slint`, `css/tokens.css`, `icons/` (generated), `fonts/` (IBM Plex, vendored, OFL-1.1)
+- `export/`: what other repositories read, and only this: `slint/tokens.slint`, `css/tokens.css`, `icons/` (generated); `slint/components.slint` and `slint/blueprint.slint` (the components and their blueprint mode, written by hand, [ADR 0002](docs/adr/0002-slint-components-with-a-blueprint-mode.md)); `fonts/` (IBM Plex, vendored, OFL-1.1)
 - `icons/`
 - `components/`
 - `docs/`

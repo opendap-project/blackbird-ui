@@ -1,0 +1,343 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Blackbird UI's components for Slint (ADR 0002): the controls of the design system §15, from
+// its tokens, for every OpenDAP application (the product, activities, the shell's layers). Each
+// job has its control (§15.2, DS-018). Each component draws itself in two ways on the same
+// geometry: as the product, and in the blueprint mode (blueprint.slint, SYS-070), as a technical
+// drawing of itself. Import with `import { Button, … } from "@blackbird/slint/components.slint";`.
+
+import { Tokens } from "tokens.slint";
+import { Blueprint, Measure, BlueprintGrid } from "blueprint.slint";
+export { Blueprint, Measure, BlueprintGrid }
+
+// Colours that follow the mode: the product's, or the blueprint's ink at an opacity level.
+export global Ink {
+    out property <color> text: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
+    out property <color> secondary: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.secondary) : Tokens.text-secondary;
+    out property <color> muted: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.text-muted;
+    out property <color> line: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.border-base;
+    out property <color> ground: Blueprint.on ? Blueprint.paper : Tokens.bg;
+}
+
+// The ground of a screen; in the blueprint mode, the paper and its grid.
+export component Screen inherits Rectangle {
+    in property <float> unit: 1.0;
+    background: Ink.ground;
+    if Blueprint.on: BlueprintGrid { step: 8px * root.unit; alpha: Blueprint.grid-minor; }
+    if Blueprint.on: BlueprintGrid { step: Tokens.size-target-min * root.unit; alpha: Blueprint.grid-major; }
+    @children
+}
+
+// Text in its roles (§9.1): `title`, `body`, `label`, `caption`; `mono` for values (§15).
+export component Label inherits Text {
+    in property <string> role: "body";
+    in property <bool> mono;
+    in property <bool> muted;
+    font-family: root.mono ? Tokens.font-family-mono : Tokens.font-family-ui;
+    font-size: root.role == "title" ? Tokens.font-size-title : (root.role == "label" ? Tokens.font-size-label : (root.role == "caption" ? Tokens.font-size-caption : Tokens.font-size-body));
+    font-weight: root.role == "title" ? Tokens.font-weight-semibold : Tokens.font-weight-regular;
+    color: root.muted ? Ink.secondary : Ink.text;
+    wrap: word-wrap;
+}
+
+// A screen's header: back (when the screen has somewhere to go back to) and its title.
+export component Header inherits Rectangle {
+    in property <string> title;
+    in property <bool> can-back: true;
+    in property <float> unit: 1.0;
+    callback back();
+    height: Tokens.size-target-min;
+    HorizontalLayout {
+        padding-right: Tokens.space-margin;
+        padding-left: root.can-back ? 0 : Tokens.space-margin;
+        spacing: Tokens.space-unit;
+        if root.can-back: Rectangle {
+            width: Tokens.size-target-min;
+            accessible-role: button;
+            accessible-label: "Back";
+            accessible-action-default => { root.back(); }
+            background: back-touch.pressed ? (Blueprint.on ? Blueprint.live.with-alpha(0.2) : Tokens.surface-active) : transparent;
+            border-width: Blueprint.on ? 1px : 0;
+            border-color: back-touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(back-touch.has-hover ? 0.9 : 0.35);
+            // A chevron, as the icon set draws it (2 px, round ends).
+            Path {
+                width: 24px;
+                height: 24px;
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                viewbox-width: 24;
+                viewbox-height: 24;
+                commands: "M15 6 L9 12 L15 18";
+                stroke: Ink.text;
+                stroke-width: 2px;
+                stroke-line-cap: round;
+                stroke-line-join: round;
+                fill: transparent;
+            }
+            back-touch := TouchArea { clicked => { root.back(); } }
+            Measure { width: parent.width; height: parent.height; shown: back-touch.has-hover || back-touch.pressed; unit: root.unit; }
+        }
+        Label { role: "title"; text: root.title; vertical-alignment: center; wrap: no-wrap; overflow: elide; }
+    }
+    if Blueprint.on: Rectangle { y: parent.height - 1px; height: 1px; background: Ink.line; }
+}
+
+// A secondary action (§15): a graphite surface with its label; in blueprint, its outline.
+export component Button inherits Rectangle {
+    in property <string> label;
+    in property <float> unit: 1.0;
+    in property <bool> enabled: true;
+    callback clicked();
+    // The touch minimum (§8.3) as the default; a screen may give it more.
+    height: Tokens.size-target-min;
+    border-radius: Tokens.radius-control;
+    border-width: 1px;
+    border-color: Blueprint.on
+        ? (touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.6))
+        : Tokens.border-base;
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-raised.brighter(8%) : Tokens.surface-raised));
+    opacity: root.enabled ? 1 : 0.45;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if root.enabled { root.clicked(); } }
+    HorizontalLayout {
+        padding-left: Tokens.space-group;
+        padding-right: Tokens.space-group;
+        Label { role: "label"; text: root.label; horizontal-alignment: center; vertical-alignment: center; wrap: no-wrap; overflow: elide; }
+    }
+    touch := TouchArea { enabled: root.enabled; clicked => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// The screen's one primary action (§15): orange, round, 64 px, dark label on the fill; in
+// blueprint, its outline in the accent.
+export component PrimaryButton inherits Rectangle {
+    in property <string> label;
+    in property <float> unit: 1.0;
+    callback clicked();
+    height: Tokens.size-target-primary;
+    border-radius: self.height / 2;
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: Blueprint.on && !touch.pressed ? Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.6) : Blueprint.live;
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : (touch.pressed ? Tokens.brand-pressed : (touch.has-hover ? Tokens.brand-hover : Tokens.brand-base));
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-action-default => { root.clicked(); }
+    HorizontalLayout {
+        padding-left: Tokens.space-section;
+        padding-right: Tokens.space-section;
+        Text {
+            text: root.label;
+            font-family: Tokens.font-family-ui;
+            font-size: Tokens.font-size-body-large;
+            font-weight: Tokens.font-weight-semibold;
+            color: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-on-brand;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+    touch := TouchArea { clicked => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// A list line: go to a thing or a sub-screen; full width, hairline, chevron (§15.2).
+export component ListLine inherits Rectangle {
+    in property <string> label;
+    in property <string> detail;
+    in property <float> unit: 1.0;
+    callback clicked();
+    height: root.detail == "" ? Tokens.size-row : Tokens.size-row-two;
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-base : transparent));
+    // In blueprint, the line's interactive area: its outline.
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-description: root.detail;
+    accessible-action-default => { root.clicked(); }
+    HorizontalLayout {
+        padding-left: Tokens.space-margin;
+        padding-right: Tokens.space-margin;
+        spacing: Tokens.space-unit;
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            Label { role: "body"; text: root.label; wrap: no-wrap; overflow: elide; }
+            if root.detail != "": Label { role: "caption"; muted: true; text: root.detail; wrap: no-wrap; overflow: elide; }
+        }
+        Path {
+            width: 20px;
+            height: 20px;
+            y: (parent.height - self.height) / 2;
+            viewbox-width: 24;
+            viewbox-height: 24;
+            commands: "M9 6 L15 12 L9 18";
+            stroke: Ink.secondary;
+            stroke-width: 2px;
+            stroke-line-cap: round;
+            stroke-line-join: round;
+            fill: transparent;
+        }
+    }
+    Rectangle { y: parent.height - Tokens.size-group-divider; height: Tokens.size-group-divider; background: Ink.line; }
+    touch := TouchArea { clicked => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// A toggle: one setting on or off (§15.2); in blueprint, its track and knob as outlines.
+export component Toggle inherits Rectangle {
+    in property <string> label;
+    in-out property <bool> on;
+    in property <float> unit: 1.0;
+    callback toggled(bool);
+    height: Tokens.size-row;
+    accessible-role: switch;
+    accessible-label: root.label;
+    accessible-checked: root.on;
+    accessible-action-default => { root.on = !root.on; root.toggled(root.on); }
+    background: Blueprint.on && touch.pressed ? Blueprint.live.with-alpha(0.2) : (Blueprint.on && touch.has-hover ? Blueprint.interactive.with-alpha(0.1) : transparent);
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
+    HorizontalLayout {
+        padding-left: Tokens.space-margin;
+        padding-right: Tokens.space-margin;
+        spacing: Tokens.space-unit;
+        Label { role: "body"; text: root.label; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; }
+        Rectangle {
+            width: 40px;
+            height: 24px;
+            y: (parent.height - self.height) / 2;
+            border-radius: self.height / 2;
+            border-width: Blueprint.on ? 1px : 0;
+            border-color: Blueprint.ink.with-alpha(root.on ? Blueprint.text : Blueprint.outline);
+            background: Blueprint.on ? Blueprint.ink.with-alpha(root.on ? 0.14 : 0) : (root.on ? Tokens.text-primary : Tokens.surface-active);
+            // (the track is the setting's state: structure, in ink)
+            animate background { duration: Tokens.motion-duration-fast; }
+            Rectangle {
+                width: 18px;
+                height: 18px;
+                y: 3px;
+                x: root.on ? parent.width - self.width - 3px : 3px;
+                border-radius: self.height / 2;
+                border-width: Blueprint.on ? 1px : 0;
+                border-color: Blueprint.ink.with-alpha(Blueprint.text);
+                background: Blueprint.on ? transparent : (root.on ? Tokens.bg : Tokens.text-secondary);
+                animate x { duration: Tokens.motion-duration-fast; easing: cubic-bezier(0.2, 0, 0, 1); }
+            }
+        }
+    }
+    touch := TouchArea { clicked => { root.on = !root.on; root.toggled(root.on); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// A slider: a value on a track, dragged or stepped; in blueprint, the track as a dimension line
+// and the value beside the knob.
+export component Slider inherits Rectangle {
+    in property <float> minimum: 0;
+    in property <float> maximum: 100;
+    in-out property <float> value: 50;
+    in property <string> label;
+    in property <float> unit: 1.0;
+    callback changed(float);
+    height: Tokens.size-target-min;
+    accessible-role: slider;
+    accessible-label: root.label;
+    accessible-value: round(root.value);
+    accessible-value-minimum: root.minimum;
+    accessible-value-maximum: root.maximum;
+    property <float> t: (root.value - root.minimum) / max(1, root.maximum - root.minimum);
+    property <length> knob: 20px;
+    // The track.
+    Rectangle {
+        x: root.knob / 2;
+        width: parent.width - root.knob;
+        y: (parent.height - self.height) / 2;
+        height: Blueprint.on ? 1px : 4px;
+        border-radius: 2px;
+        background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
+        Rectangle {
+            width: parent.width * root.t;
+            border-radius: 2px;
+            background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
+        }
+    }
+    if Blueprint.on: Rectangle { x: root.knob / 2; width: 1px; y: (parent.height - 9px) / 2; height: 9px; background: Blueprint.ink.with-alpha(Blueprint.secondary); }
+    if Blueprint.on: Rectangle { x: parent.width - root.knob / 2 - 1px; width: 1px; y: (parent.height - 9px) / 2; height: 9px; background: Blueprint.ink.with-alpha(Blueprint.secondary); }
+    // The knob.
+    Rectangle {
+        x: (parent.width - root.knob) * root.t;
+        y: (parent.height - root.knob) / 2;
+        width: root.knob;
+        height: root.knob;
+        border-radius: root.knob / 2;
+        border-width: Blueprint.on ? 1px : 0;
+        border-color: touch.pressed ? Blueprint.live : Blueprint.interactive;
+        background: Blueprint.on ? (touch.pressed ? Blueprint.live.with-alpha(0.3) : Blueprint.paper) : Tokens.text-primary;
+    }
+    if Blueprint.on: Text {
+        x: min(parent.width - self.width, max(0, (parent.width - root.knob) * root.t + root.knob / 2 - self.width / 2));
+        y: 0;
+        text: round(root.value);
+        font-family: Tokens.font-family-mono;
+        font-size: 10px;
+        color: Blueprint.ink.with-alpha(Blueprint.text);
+    }
+    touch := TouchArea {
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down || (e.kind == PointerEventKind.move && self.pressed) {
+                root.value = root.minimum + max(0, min(1, (self.mouse-x - root.knob / 2) / (root.width - root.knob))) * (root.maximum - root.minimum);
+                root.changed(root.value);
+            }
+        }
+        moved => {
+            root.value = root.minimum + max(0, min(1, (self.mouse-x - root.knob / 2) / (root.width - root.knob))) * (root.maximum - root.minimum);
+            root.changed(root.value);
+        }
+    }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// One segment of a button group (§15.1): the capsule's outer ends on the first and last segment,
+// flat inner edges, a 1 px split.
+export component Segment inherits Rectangle {
+    in property <string> label;
+    in property <bool> selected;
+    in property <bool> first;
+    in property <bool> last;
+    in property <float> unit: 1.0;
+    callback clicked();
+    height: Tokens.size-target-min;
+    border-top-left-radius: root.first ? self.height / 2 : 0;
+    border-bottom-left-radius: root.first ? self.height / 2 : 0;
+    border-top-right-radius: root.last ? self.height / 2 : 0;
+    border-bottom-right-radius: root.last ? self.height / 2 : 0;
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover || root.selected ? 0.9 : 0.6);
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.ink.with-alpha(root.selected ? 0.14 : (touch.has-hover ? Blueprint.fill : 0)))
+        : (touch.pressed ? Tokens.surface-active : (root.selected ? Tokens.surface-active : Tokens.surface-raised));
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-checked: root.selected;
+    accessible-action-default => { root.clicked(); }
+    Text {
+        text: root.label;
+        font-family: Tokens.font-family-ui;
+        font-size: Tokens.font-size-label;
+        // The selected segment's non-colour cue: its weight (§15.1).
+        font-weight: root.selected ? Tokens.font-weight-semibold : Tokens.font-weight-regular;
+        color: root.selected ? Ink.text : Ink.secondary;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    touch := TouchArea { clicked => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
