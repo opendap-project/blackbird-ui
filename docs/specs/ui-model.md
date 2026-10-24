@@ -199,6 +199,21 @@ Album art uses `cover` in tiles and `contain` on Now Playing, so the whole art i
   - **To the top:** a tap on the status bar scrolls the screen on display to its top (iOS's convention).
   - **Buttons:** focus navigation scrolls (§8.4); there is no separate page-scroll binding.
 
+### 7.1 Large content
+
+Lists and grids of any size build only what the viewport needs, in bounded memory and time (T1-046, T1-047), from system's `opendap-layout` (platform-agnostic, with tests; tried in the UI primitives activity's Virtual screen: 100 000 rows, about 30 built, a few dozen slots):
+
+| Primitive | Does | From |
+|---|---|---|
+| Extents, fixed or measured | Item sizes along the axis; measured ones correct an estimate in a Fenwick tree, so offsets and lookups are O(log n) at any count | RecyclerView, LazyColumn |
+| Window | The items to build: the viewport, overscan on both sides, and prefetch ahead by velocity, capped | RecyclerView's prefetch, Flutter's cache extent |
+| Scroll anchoring | What the user looks at stays put when items above change size, appear or go | CSS `overflow-anchor` |
+| Recycling | A bounded set of slots, rebound by key as the window moves; never rebuilt, never more than the largest window | RecyclerView's view pool |
+| Auto-fit grid | Columns by the space (`minmax`), rows windowed as a list (the cover grid) | CSS `auto-fit`, `GridCells.Adaptive` |
+| Sticky headers | A section's header pinned while its section scrolls, pushed out by the next | CSS `position: sticky`, `stickyHeader` |
+
+Slint's `ListView` virtualizes one vertical list of rows of one kind; these primitives cover the rest (grids, mixed rows, measured sizes, anchoring, horizontal rows) on top of a plain model, as `CoverGrid` and `Scroll` will.
+
 ## 8. Motion
 
 **Proven:** durations and easing curves as tokens (Material, the design system's `motion.*`); springs for anything a hand moves, since they carry the gesture's velocity and can be interrupted (SwiftUI, Compose, UIKit dynamics); enter and exit transitions for what appears and disappears (SwiftUI transitions, Framer's presence); layout animation of position changes (FLIP); shared-element transitions between screens; reduce motion that keeps the information and drops the movement.
