@@ -81,3 +81,31 @@ export component BlueprintGrid inherits Rectangle {
         background: Blueprint.ink.with-alpha(root.alpha);
     }
 }
+
+// Snap lines at the screen's key points, for whoever lays out a screen against the drawing (the
+// guides of a design tool): the centre axes, which split it into quadrants; the quarter lines
+// through each quadrant's centre; the side margins; and the system's bands (the status bar, a
+// header under it, the playing strip at the bottom). They sit on the 8 px grid wherever the screen
+// does, so a snapped element lands on both.
+export component SnapLines inherits Rectangle {
+    // Logical pixels per design pixel.
+    in property <float> unit: 1.0;
+    // Off where the margins are drawn already (the shell draws them dotted).
+    in property <bool> margins: true;
+    property <length> margin: Tokens.space-margin * root.unit;
+    property <length> status: Tokens.size-status-bar * root.unit;
+    property <length> header: root.status + Tokens.size-header * root.unit;
+    property <length> strip: root.height - Tokens.size-playing-strip * root.unit;
+    // The centre axes: the strongest guides.
+    Rectangle { x: root.width / 2; width: 1px; background: Blueprint.ink.with-alpha(Blueprint.faint * 1.6); }
+    Rectangle { y: root.height / 2; height: 1px; background: Blueprint.ink.with-alpha(Blueprint.faint * 1.6); }
+    // The quarter lines: each quadrant's centre.
+    for f in [0.25, 0.75]: Rectangle { x: root.width * f; width: 1px; background: Blueprint.ink.with-alpha(Blueprint.grid-major); }
+    for f in [0.25, 0.75]: Rectangle { y: root.height * f; height: 1px; background: Blueprint.ink.with-alpha(Blueprint.grid-major); }
+    // The side margins.
+    if root.margins: Rectangle { x: root.margin; width: 1px; background: Tokens.state-warning.with-alpha(0.28); }
+    if root.margins: Rectangle { x: root.width - root.margin; width: 1px; background: Tokens.state-warning.with-alpha(0.28); }
+    // The system's bands.
+    for y in [root.status, root.header, root.strip]: Rectangle { y: y; height: 1px; background: Tokens.state-info.with-alpha(0.28); }
+}
+

@@ -8,8 +8,8 @@
 // drawing of itself. Import with `import { Button, … } from "@blackbird/slint/components.slint";`.
 
 import { Tokens } from "tokens.slint";
-import { Blueprint, Measure, BlueprintGrid } from "blueprint.slint";
-export { Blueprint, Measure, BlueprintGrid }
+import { Blueprint, Measure, BlueprintGrid, SnapLines } from "blueprint.slint";
+export { Blueprint, Measure, BlueprintGrid, SnapLines }
 
 // Whether the focus is shown (CSS :focus-visible, Android's touch mode): the focus is always
 // somewhere (focus on entry), but its ring shows only once the buttons or a keyboard are used, and
@@ -29,6 +29,33 @@ export global FocusReveal {
     in-out property <int> serial;
 }
 
+// A touch area that follows the gesture rules (system input events §3.2), for every component
+// that acts on a tap: a tap is down and up within the slop before the long-press time; a long
+// press fires while the finger is still down and nothing follows on release; a contact that went
+// past the slop (a scroll, a drag) is never a tap, even if it comes back. A contact hides the
+// focus ring and gives the element the focus (`down`), so the buttons continue from there.
+export component TapArea inherits TouchArea {
+    // Logical pixels per design pixel, for the slop.
+    in property <float> unit: 1.0;
+    callback down();
+    callback tapped();
+    callback long-pressed();
+    property <bool> long;
+    property <bool> far;
+    pointer-event(e) => {
+        if e.kind == PointerEventKind.down { root.long = false; root.far = false; FocusVisible.on = false; root.down(); }
+    }
+    moved => {
+        if self.pressed && sqrt(pow((self.mouse-x - self.pressed-x) / 1px, 2) + pow((self.mouse-y - self.pressed-y) / 1px, 2)) >= 10 * root.unit { root.far = true; }
+    }
+    clicked => { if !root.long && !root.far { root.tapped(); } }
+    Timer {
+        interval: 500ms;
+        running: root.pressed && !root.long && !root.far;
+        triggered => { root.long = true; root.long-pressed(); }
+    }
+}
+
 // Colours that follow the mode: the product's, or the blueprint's ink at an opacity level.
 export global Ink {
     out property <color> text: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
@@ -38,13 +65,37 @@ export global Ink {
     out property <color> ground: Blueprint.on ? Blueprint.paper : Tokens.bg;
 }
 
-// The ground of a screen; in the blueprint mode, the paper and its grid.
+// The ground of a screen; in the blueprint mode, the paper and its 8 px grid (the shell draws
+// the snap lines over it). It also takes what the focused element leaves (system input events
+// §4.2, design system §8.4), as the bubble phase does:
+// - Action (Enter, Space) while the focus is hidden: the screen's primary action where it
+//   declares one (`has-primary`, T1-061); else it only reveals the focus. With the focus shown,
+//   the focused element takes Action itself.
+// - Escape: back, where there is a way back (`can-back`).
+// - A touch on its bare ground hides the focus ring, as a touch anywhere does.
 export component Screen inherits Rectangle {
     in property <float> unit: 1.0;
+    in property <bool> has-primary;
+    in property <bool> can-back;
+    callback primary();
+    callback back();
     background: Ink.ground;
     if Blueprint.on: BlueprintGrid { step: 8px * root.unit; alpha: Blueprint.grid-minor; }
-    if Blueprint.on: BlueprintGrid { step: Tokens.size-target-min * root.unit; alpha: Blueprint.grid-major; }
-    @children
+    // It only receives what bubbles up: never focused itself, by Tab or by touch.
+    FocusScope {
+        focus-on-tab-navigation: false;
+        focus-on-click: false;
+        key-pressed(e) => {
+            if e.text == Key.Return || e.text == " " {
+                if root.has-primary && !FocusVisible.on { root.primary(); } else { FocusVisible.on = true; }
+                return accept;
+            }
+            if e.text == Key.Escape && root.can-back { root.back(); return accept; }
+            reject
+        }
+        TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+        @children
+    }
 }
 
 // Text in its roles (§9.1): `title`, `body`, `label`, `caption`; `mono` for values (§15).
@@ -106,18 +157,21 @@ export component Header inherits Rectangle {
     back-fs := FocusScope {
         x: 0;
         width: root.can-back ? Tokens.size-target-min : 0;
-        visible: root.can-back;
-        enabled: root.can-back;
+        // Out of the focus chain where there is no way back. Never disabled or hidden while it may
+        // hold the focus: Slint then keeps its `has-focus` after the focus moves on, and its ring
+        // stayed on the next screen.
+        focus-on-tab-navigation: root.can-back;
+        focus-on-click: root.can-back;
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.back(); return accept; }
             reject
         }
-        back-touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; back-fs.focus(); } } enabled: root.can-back; clicked => { root.back(); } }
+        back-touch := TapArea {
+        unit: root.unit; down => { back-fs.focus(); } enabled: root.can-back; tapped => { root.back(); } }
     }
-    if back-fs.has-focus && FocusVisible.on: Rectangle { x: 0; width: Tokens.size-target-min; border-width: 2px; border-color: Tokens.focus; }
+    if root.can-back && back-fs.has-focus && FocusVisible.on: Rectangle { x: 0; width: Tokens.size-target-min; border-width: 2px; border-color: Tokens.focus; }
 }
 
 // A secondary action (§15): a graphite surface with its label; in blueprint, its outline.
@@ -157,15 +211,15 @@ export component Button inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { if root.enabled { root.clicked(); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } enabled: root.enabled; clicked => { root.clicked(); } }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } enabled: root.enabled; tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -180,6 +234,11 @@ export component PrimaryButton inherits Rectangle {
     in property <string> name;
     in property <float> unit: 1.0;
     callback clicked();
+    // Focus on entry (design system §8.4): a screen's primary action takes the focus when the
+    // screen arrives, whatever comes before it; without one, the first element does. Off for a
+    // primary-styled control that is not the screen's primary action (a catalogue of them).
+    in property <bool> default-focus: true;
+    init => { if root.default-focus { fs.focus(); } }
     property <bool> round: root.label == "" && root.icon.width > 0;
     height: Tokens.size-target-primary;
     min-width: self.height;
@@ -226,15 +285,15 @@ export component PrimaryButton inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -294,15 +353,15 @@ export component ListLine inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { if root.reason == "" { root.clicked(); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { if root.reason == "" { root.clicked(); } } }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } tapped => { if root.reason == "" { root.clicked(); } } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -368,15 +427,15 @@ export component Toggle inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { if root.reason == "" { root.on = !root.on; root.toggled(root.on); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { if root.reason == "" { root.on = !root.on; root.toggled(root.on); } } }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } tapped => { if root.reason == "" { root.on = !root.on; root.toggled(root.on); } } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -469,14 +528,15 @@ export component Slider inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
             if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
-            // Arrows step the value by 5 % always; the volume buttons (Tab, Shift+Tab from the
-            // shell) only while locked: Volume + up, Volume − down.
-            if e.text == Key.LeftArrow || e.text == Key.DownArrow { root.nudge(-root.step); return accept; }
-            if e.text == Key.RightArrow || e.text == Key.UpArrow { root.nudge(root.step); return accept; }
+            // ← → step the value by 5 % always (a keyboard's arrows, W3C's slider). The volume
+            // buttons (Tab, Shift+Tab from the shell) and ↑ ↓ (the same buttons by their place,
+            // design system §8.4) only while locked: Volume + up, Volume − down.
+            if e.text == Key.LeftArrow || (root.adjusting && e.text == Key.DownArrow) { root.nudge(-root.step); return accept; }
+            if e.text == Key.RightArrow || (root.adjusting && e.text == Key.UpArrow) { root.nudge(root.step); return accept; }
             if root.adjusting && e.text == Key.Tab && !e.modifiers.shift { root.nudge(-root.step); return accept; }
             if root.adjusting && (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) { root.nudge(root.step); return accept; }
             reject
@@ -583,18 +643,21 @@ export component RangeSlider inherits Rectangle {
         changed has-focus => {
             if !self.has-focus { root.adjusting = false; }
             if self.has-focus {
+                // Reached from below (Volume +, Shift+Tab): the focus walks it backwards, from
+                // the high knob; from above, from the low one.
+                root.active = FocusReveal.y > root.absolute-position.y ? 1 : 0;
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
                 FocusReveal.serial += 1;
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
             if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
-            if e.text == Key.LeftArrow || e.text == Key.DownArrow { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
-            if e.text == Key.RightArrow || e.text == Key.UpArrow { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); return accept; }
+            if e.text == Key.LeftArrow || (root.adjusting && e.text == Key.DownArrow) { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
+            if e.text == Key.RightArrow || (root.adjusting && e.text == Key.UpArrow) { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); return accept; }
             // Locked: the volume buttons move the focused knob (Volume + up, Volume − down).
             if root.adjusting && e.text == Key.Tab && !e.modifiers.shift { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
             if root.adjusting && (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); return accept; }
@@ -663,15 +726,15 @@ export component Segment inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: min(root.height / 2, 8px); border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -712,15 +775,15 @@ export component IconButton inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -769,15 +832,15 @@ export component Tab inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -801,6 +864,13 @@ export component RadioStops inherits VerticalLayout {
     in property <string> description;
     in property <float> unit: 1.0;
     callback changed(int);
+    // Locked for adjustment (Enter, Action or Space), as a slider: the volume buttons move the
+    // choice instead of the focus, until it is released the same way, by Escape, or the focus
+    // leaves. ← → move it at any time.
+    in-out property <bool> adjusting;
+    function pick(i: int) {
+        if i >= 0 && i < root.stops.length && i != root.selected { root.selected = i; root.changed(i); }
+    }
     forward-focus: fs;
     spacing: Tokens.space-unit;
     Rectangle {
@@ -835,11 +905,12 @@ export component RadioStops inherits VerticalLayout {
                     : (i == root.selected ? Tokens.text-primary : Tokens.color-graphite-700);
                 animate width, height { duration: Tokens.motion-duration-fast; }
             }
-            stop-touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.selected = i; root.changed(i); } }
+            stop-touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } tapped => { root.selected = i; root.changed(i); } }
         }
         fs := FocusScope {
         changed has-focus => {
+            if !self.has-focus { root.adjusting = false; }
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
@@ -847,10 +918,16 @@ export component RadioStops inherits VerticalLayout {
             }
         }
             key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
-                if e.text == Key.LeftArrow && root.selected > 0 { root.selected -= 1; root.changed(root.selected); return accept; }
-                if e.text == Key.RightArrow && root.selected < root.stops.length - 1 { root.selected += 1; root.changed(root.selected); return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
+                if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
+                if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
+                if e.text == Key.LeftArrow || (root.adjusting && e.text == Key.DownArrow) { root.pick(root.selected - 1); return accept; }
+                if e.text == Key.RightArrow || (root.adjusting && e.text == Key.UpArrow) { root.pick(root.selected + 1); return accept; }
+                // Locked: Volume + (Shift+Tab) to the next stop, Volume − (Tab) to the previous,
+                // as a slider's value goes up and down.
+                if root.adjusting && e.text == Key.Tab && !e.modifiers.shift { root.pick(root.selected - 1); return accept; }
+                if root.adjusting && (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) { root.pick(root.selected + 1); return accept; }
                 reject
             }
         }
@@ -861,8 +938,8 @@ export component RadioStops inherits VerticalLayout {
             width: 30px;
             height: 30px;
             border-radius: 15px;
-            border-width: 2px;
-            border-color: Tokens.focus;
+            border-width: root.adjusting ? 3px : 2px;
+            border-color: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base) : Tokens.focus;
         }
     }
     HorizontalLayout {
@@ -904,15 +981,15 @@ export component CheckLine inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Hidden focus: the first key only reveals it.
-            if !FocusVisible.on { FocusVisible.on = true; return accept; }
+            // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
+            if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea {
-        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -1098,4 +1175,152 @@ export component ErrorState inherits VerticalLayout {
     Label { role: "body"; muted: true; text: root.reason; }
     if root.action != "": Rectangle { height: Tokens.space-group; }
     if root.action != "": Button { label: root.action; unit: root.unit; clicked => { root.acted(); } }
+}
+
+// ── Layers and groups (ui-model §9) ─────────────────────────────────────────────────────────────
+
+// Elements that belong together: the side margins, an optional title, and a state that cascades.
+// Disabled, everything in it dims to 45 % and its touches stop at the group, so no child can act
+// or re-enable itself inside it; Action and Enter stop there too, while the focus can still reach
+// the children to read them (ADR 0003); its reason shows once, under the title. It creates no
+// stacking context: children keep their order. Its box is their local origin.
+export component Group inherits Rectangle {
+    in property <string> title;
+    in property <bool> enabled: true;
+    // Why it is disabled, shown once (ADR 0003).
+    in property <string> reason;
+    in property <float> unit: 1.0;
+    // Side margins belong to groups (§15.2), so a list under them runs the full width.
+    in property <length> inset: Tokens.space-margin;
+    accessible-role: groupbox;
+    accessible-label: root.title;
+    accessible-enabled: root.enabled;
+    accessible-description: root.enabled ? "" : root.reason;
+    VerticalLayout {
+        spacing: Tokens.space-unit;
+        padding-left: root.inset;
+        padding-right: root.inset;
+        if root.title != "": Label { role: "caption"; muted: true; text: root.title; }
+        if !root.enabled && root.reason != "": Label { role: "caption"; text: root.reason; }
+        FocusScope {
+            focus-on-tab-navigation: false;
+            focus-on-click: false;
+            // Disabled: Action and Enter stop here on their way down, before any child.
+            capture-key-pressed(e) => {
+                if !root.enabled && (e.text == Key.Return || e.text == " ") { return accept; }
+                reject
+            }
+            VerticalLayout {
+                spacing: Tokens.space-unit;
+                opacity: root.enabled ? 1 : 0.45;
+                @children
+            }
+        }
+    }
+    // Disabled: the touches meant for its children stop at the group.
+    if !root.enabled: TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+    if Blueprint.on: Rectangle {
+        border-width: 1px;
+        border-color: Blueprint.ink.with-alpha(Blueprint.faint);
+    }
+}
+
+// A band of a screen above the content (a sticky header, the playing strip): declared after the
+// content, so it draws and takes touches above it, in one order. `hit` says what its empty parts
+// do with a touch: `self` takes it, `through` lets it reach what is below. Nothing invisible
+// takes touches: hide a layer with `visible: false`, never with opacity.
+export component Layer inherits Rectangle {
+    in property <string> hit: "through";
+    in property <string> name: "raised";
+    if root.hit == "self": TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+    @children
+    if Blueprint.on: Rectangle {
+        border-width: 1px;
+        border-color: Tokens.state-info.with-alpha(0.5);
+        Text {
+            x: 4px;
+            y: 2px;
+            text: root.name;
+            font-family: Tokens.font-family-mono;
+            font-size: 10px;
+            color: Tokens.state-info;
+        }
+    }
+}
+
+// A popover anchored where it is declared: it opens above everything of the activity (Slint's
+// popup: outside its parent's clipping and order, as the web's top layer), takes the focus while
+// open (Tab and the volume buttons stay inside it) and gives it back when it closes; a touch
+// outside it closes it. Open with `show()`.
+export component Overlay inherits PopupWindow {
+    in property <float> unit: 1.0;
+    close-policy: close-on-click-outside;
+    Panel {
+        border-width: 1px;
+        border-color: Blueprint.on ? Blueprint.interactive.with-alpha(0.6) : Tokens.border-strong;
+        background: Blueprint.on ? Blueprint.paper : Tokens.surface-raised;
+        VerticalLayout {
+            padding: Tokens.space-unit;
+            @children
+        }
+    }
+}
+
+// The dimmed ground under a modal: it takes every touch below it.
+export component Scrim inherits Rectangle {
+    callback tapped();
+    background: Blueprint.on ? Blueprint.paper.with-alpha(0.7) : #000000b8;
+    TouchArea { clicked => { root.tapped(); } }
+    // In blueprint, hatched: the area is inert, not empty.
+    if Blueprint.on: Rectangle {
+        clip: true;
+        for i in ceil(root.width / 16px) + 1: Rectangle {
+            x: i * 16px;
+            width: 1px;
+            background: Blueprint.ink.with-alpha(Blueprint.faint * 0.6);
+        }
+    }
+}
+
+// A dialog: the rest of the activity is inert under a scrim (it takes every touch), the focus is
+// trapped inside it (Slint's popup keeps Tab and the volume buttons in it), and Escape or a tap on
+// the scrim dismiss it where `dismissable`. Its content takes the focus on entry as a screen does:
+// its primary action, else its first element. Open with `show()`, close with `close()`. Declared
+// at the screen's root, so it covers the whole surface.
+export component Modal inherits PopupWindow {
+    in property <string> title;
+    in property <bool> dismissable: true;
+    in property <float> unit: 1.0;
+    callback dismissed();
+    close-policy: no-auto-close;
+    x: 0;
+    y: 0;
+    Scrim {
+        tapped => { if root.dismissable { root.close(); root.dismissed(); } }
+    }
+    FocusScope {
+        focus-on-tab-navigation: false;
+        focus-on-click: false;
+        key-pressed(e) => {
+            if e.text == Key.Escape && root.dismissable { root.close(); root.dismissed(); return accept; }
+            reject
+        }
+        Panel {
+            x: Tokens.space-margin;
+            width: parent.width - 2 * Tokens.space-margin;
+            height: body.preferred-height;
+            y: (parent.height - self.height) / 2;
+            accessible-role: groupbox;
+            accessible-label: root.title;
+            background: Blueprint.on ? Blueprint.paper : Tokens.surface-raised;
+            border-width: 1px;
+            border-color: Blueprint.on ? Blueprint.interactive.with-alpha(0.6) : Tokens.border-base;
+            body := VerticalLayout {
+                padding: Tokens.space-group;
+                spacing: Tokens.space-group;
+                if root.title != "": Label { role: "title"; text: root.title; }
+                @children
+            }
+        }
+    }
 }

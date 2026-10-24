@@ -73,6 +73,59 @@ How OpenDAP's interface is put together, for whoever writes an activity or a com
   - **Logical directions:** `start` and `end` in every component's API; the `Layout` context mirrors them for right-to-left (§9.5); transport and physical-order groups do not mirror.
   - **By the space, not the device:** a component that changes shape does it by its own width (a container query), and the screen picks the layout class (§18.2); no component tests for "the T1".
   - **Explicit position only for overlays** (a badge, a focus ring, a toast); always set `x` and `y` there, since Slint centres what has none.
+  - **A fixed size inside a stack caps the stack.** Slint gives a layout the smallest maximum of its children across its axis, so one element with a fixed width (a label sized to its text) makes the whole column that narrow. Put such an element in a row aligned to the start, or let it stretch.
+
+### 6.1 Container and content
+
+Every element is both: a box its container places, and a container of its own content. Three questions, answered separately and in this order, as CSS, Flutter and SwiftUI separate them: where the box goes (**positioning**), how big it is (**sizing**), and how its content sits inside it (**fit**, **alignment**, **overflow**).
+
+**Positioning** (CSS's `position`, Flutter's `Stack`/`Positioned`):
+
+| Model | Is | In Blackbird UI |
+|---|---|---|
+| Flow | The container's layout places it (the default) | Stacks and rows (§6); everything that is not one of the below |
+| Relative | Placed by the flow, then offset without moving its neighbours | Only for motion (§8): an element entering moves at most 8 px toward its place |
+| Absolute | Placed by its container's frame, outside the flow | Overlays inside one element: a badge, a focus ring, a knob on its track; `x` and `y` always both set |
+| Anchored | Placed by another element, outside its container's clipping and order | `Overlay` (§9): a popover at its anchor, kept on screen |
+| Fixed to a frame | Stays put while a container scrolls | A `Layer` above the scroll area (the header, the playing strip): declared outside the scroll content, never inside it with a counter-offset |
+| Sticky | Flows, then stays at a container's edge once scrolled to it | A section label in a long list (to build on `Scroll`, §7) |
+
+**Sizing** (Flutter's constraints, CSS's `min-`/`max-` and `fit-content`):
+
+| Model | Is | Slint |
+|---|---|---|
+| Fill | Takes the space its container gives along an axis | A stretch factor (`horizontal-stretch: 1`), or no fixed size in a layout |
+| Fit content (hug) | As big as its content, within min and max | Its preferred size; `horizontal-stretch: 0` |
+| Fixed | A size from a token (a 48 px target) | `width`/`height` from `Tokens`; beware that it caps a stack (§6) |
+| Bounded | Fill or fit, held within a minimum and a maximum | `min-*`/`max-*`; the touch minimum (§8.3) is always a minimum |
+| Aspect | One side follows the other by a ratio (a cover: 1:1) | Height bound to width × ratio |
+
+Constraints go down and sizes go up (§6): a container offers a range, the content picks its size in it, the container places it. A content's size never depends on where it is placed.
+
+**Fit** of content that has its own shape (an image, a cover, a waveform) in a box of another shape (CSS's `object-fit`, Slint's `image-fit`):
+
+| Fit | Does | Use |
+|---|---|---|
+| `contain` | Whole content, scaled to fit, letterboxed | A logo, a diagram, a HAT's photo: nothing may be cut |
+| `cover` | Fills the box, scaled to cover, cut at the edges | Album art in a tile, a background: no bars |
+| `fill` | Stretched to the box, aspect lost | Never for pictures; only for content without an aspect (a gradient, a meter's bar) |
+| `none` (`preserve`) | At its own size, cut by the box | Pixel art and icons at their drawn size (Tabler at 24 px, design system §15.3) |
+| `scale-down` | `none` unless too big, then `contain` | Third-party art of unknown size |
+
+Proposed, for review: album art uses `cover` in tiles and `contain` on Now Playing, so the whole art is seen where it is the subject.
+
+**Alignment** of content within its box: logical (`start`, `center`, `end`, `stretch`), mirrored for right to left (§9.5); a cut content keeps its focal point (the centre by default).
+
+**Overflow** of content bigger than its box, decided per axis:
+
+| Overflow | Does | Use |
+|---|---|---|
+| Wrap | Text flows to more lines | Body text, descriptions |
+| Elide | Text cut with an ellipsis, the full text in its accessible name and on focus | Titles in lines and headers |
+| Clip | Cut at the box | Scroll content, modals' content; never a focus ring (§9) |
+| Scroll | The box becomes a viewport over the content (§7, input events §6.2) | Screens taller than the display, rows of covers |
+| Visible | Drawn past the box | Focus rings, halos, a knob's ring past its track |
+| Scale | Text shrinks, never below the minimum size | Never: text stays at its role's size (§9) |
 
 ## 7. Scrolling
 
@@ -103,13 +156,33 @@ How OpenDAP's interface is put together, for whoever writes an activity or a com
   - **Reduce motion** (DS-012): durations become zero and springs settle at once; fades remain where they carry information, at `fast`.
   - **Budget:** 60 frames per second on the T1 (§17); only transforms and opacity animate on screens with many elements, never a layout pass per frame.
 
-## 9. What Blackbird UI adds, in order
+## 9. Layers and groups
+
+**Proven:** z-order by named layers, never by numbers (Wayland's layer-shell: background, bottom, top, overlay; Android's window types; iOS's window levels); an overlay that escapes its parent's clipping and stacking wherever it is declared (the web's top layer for dialogs and popovers, Flutter's `Overlay`, Compose's `Popup`); one primitive that makes the rest inert, traps the focus and hides the rest from a screen reader (HTML's modal `dialog` with `inert`, iOS's `accessibilityViewIsModal`); groups that gather without creating a stacking context (a Figma group, against a frame that has an origin and constraints). Avoided: z-index wars and magic numbers; stacking contexts made by accident (CSS `opacity` and `transform` create them); invisible layers that still take touches; focus or a screen reader escaping a modal; drawing order and hit-testing order that differ (iOS's `zPosition` trap).
+
+**System layers** (the shell's, bottom to top; shell spec §2 and §7): `background` → `activity` → `activity-overlay` (the activity's popovers and sheets, still its own surface) → `keyboard` → `system-ui` (status bar and panel, volume, toasts) → `system-view` (the power menu: the full screen, no client gets input) → `trusted` (consent, pairing) → `debug` (the blueprint references) → `touch-indicator`. The last two never take input. A system layer that takes input cancels the activity's contacts and releases its keys (system input events §5.1).
+
+**In an activity**, four bands, named, in this order: `content`, `raised` (a sticky header, the playing strip), `overlay` (popovers, menus), `modal` (a dialog and its scrim). Slint's `z` orders siblings only and must be a constant, so Blackbird UI's primitives place themselves in their band; no screen writes a `z`.
+
+| Primitive | Is | z-order | Hit testing | Focus | Screen reader | Enabled | Coordinates | Blueprint |
+|---|---|---|---|---|---|---|---|---|
+| `Group` | Elements that belong together, with an optional title | none: children keep their order | none of its own; disabled, it takes the touches meant for its children | one traversal group | one node with its title | `enabled: false` dims everything in it to 45 % and takes their touches; `reason` shows once, under the title (ADR 0003) | its box is the children's local origin | its outline and title |
+| `Layer` | A band of a screen (`raised`) | the band's | `hit: self`, `through` or `none` | normal | normal | normal | its own | the band's name |
+| `Overlay` | A popover anchored to an element | the `overlay` band, wherever it is declared | its own box; a touch outside dismisses it (`dismiss: outside`) | enters it on open, returns to the anchor on close | announced, tied to its anchor | follows its anchor | the anchor's position, converted | an anchor line |
+| `Modal` | A dialog: the rest inert | the `modal` band, above everything of the activity | the scrim takes every touch below | trapped inside, on its primary action or first element (focus on entry); back to where it was on close | the rest hidden | everything below inert | the screen | the scrim hatched |
+
+- **Effects on the rest.** A group's `enabled` cascades and cannot be undone by a child (§2). Events bubble through groups as through any element; a group may listen (input events §4). Opacity on a group is for fades only, never a way to hide: hidden is `visible: false` or `hit: none`, so nothing invisible takes touches. Motion enters and leaves a group as one (§8). Clipping belongs to scroll areas and modals' content only, so a focus ring is never clipped by a group.
+- **Coordinates** follow the tree (system input events §6.1): every element with a box is a local origin; a group without a box is transparent; an overlay converts its anchor's position to the surface.
+
+## 10. What Blackbird UI adds, in order
 
 1. The `Motion` and `Layout` contexts (§2), read by every component.
 2. `states` in every component for the interaction states (§5).
 3. `Scroll`: edge stretch, snapping, nested hand-over, the indicator, to-the-top (§7).
 4. Stack wrappers with spacing by proximity tokens (§6): `Stack`, `Row`, `Group`, so no screen writes a spacing number.
 5. Enter, exit and navigation transitions (§8), and layout animation for lists.
+6. `Group`, `Layer`, `Overlay`, `Modal` and `Scrim` (§9), with their effects on focus, touch, the screen reader and the blueprint.
+7. `Cover` (art with its aspect and fit, §6.1) and sticky section labels in `Scroll`.
 
 Each one shows in the UI primitives activity (system SYS-071) and in the blueprint mode (ADR 0002).
 
