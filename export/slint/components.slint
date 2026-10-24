@@ -11,6 +11,15 @@ import { Tokens } from "tokens.slint";
 import { Blueprint, Measure, BlueprintGrid } from "blueprint.slint";
 export { Blueprint, Measure, BlueprintGrid }
 
+// Where the focused element is, in window coordinates, so a scrolled screen can bring it into
+// view when the buttons move the focus there (focus on entry and focus navigation, §8.4). A
+// screen binds `serial` and reveals `y` to `y + h` in its scroll area.
+export global FocusReveal {
+    in-out property <length> y;
+    in-out property <length> h;
+    in-out property <int> serial;
+}
+
 // Colours that follow the mode: the product's, or the blueprint's ink at an opacity level.
 export global Ink {
     out property <color> text: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
@@ -128,6 +137,13 @@ export component Button inherits Rectangle {
     // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " { if root.enabled { root.clicked(); } return accept; }
             reject
@@ -187,6 +203,13 @@ export component PrimaryButton inherits Rectangle {
     // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
@@ -245,6 +268,13 @@ export component ListLine inherits Rectangle {
     // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " { if root.reason == "" { root.clicked(); } return accept; }
             reject
@@ -309,6 +339,13 @@ export component Toggle inherits Rectangle {
     // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " { if root.reason == "" { root.on = !root.on; root.toggled(root.on); } return accept; }
             reject
@@ -374,6 +411,13 @@ export component Slider inherits Rectangle {
     // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             // Arrows step the value by 5 %.
             if e.text == Key.LeftArrow || e.text == Key.DownArrow { root.value = max(root.minimum, root.value - (root.maximum - root.minimum) / 20); root.changed(root.value); return accept; }
@@ -468,6 +512,13 @@ export component RangeSlider inherits Rectangle {
     }
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Tab && !e.modifiers.shift && root.active == 0 { root.active = 1; return accept; }
             if e.text == Key.Tab && e.modifiers.shift && root.active == 1 { root.active = 0; return accept; }
@@ -523,6 +574,13 @@ export component Segment inherits Rectangle {
     // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
@@ -562,6 +620,13 @@ export component IconButton inherits Rectangle {
     }
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
@@ -609,6 +674,13 @@ export component Tab inherits Rectangle {
     if Blueprint.on && !root.current: Rectangle { y: parent.height - 1px; height: 1px; background: Blueprint.interactive.with-alpha(0.35); }
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
@@ -675,6 +747,13 @@ export component RadioStops inherits VerticalLayout {
             stop-touch := TouchArea { clicked => { root.selected = i; root.changed(i); } }
         }
         fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
             key-pressed(e) => {
                 if e.text == Key.LeftArrow && root.selected > 0 { root.selected -= 1; root.changed(root.selected); return accept; }
                 if e.text == Key.RightArrow && root.selected < root.stops.length - 1 { root.selected += 1; root.changed(root.selected); return accept; }
@@ -714,6 +793,13 @@ export component CheckLine inherits Rectangle {
     Rectangle { y: parent.height - Tokens.size-group-divider; height: Tokens.size-group-divider; background: Ink.line; }
     forward-focus: fs;
     fs := FocusScope {
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
