@@ -29,6 +29,26 @@ export global FocusReveal {
     in-out property <int> serial;
 }
 
+// The direction the focus last moved in by the keys: Tab (Volume −) forward, Shift+Tab
+// (Volume +) backward. A control entered backward starts at its end (a range's high knob, a
+// list's last item); taken from the key, never guessed from positions (`Screen` and `Modal`
+// record it before the key reaches anything).
+export global FocusNav {
+    in-out property <bool> backward;
+}
+
+// Reduce motion (DS-012): durations become zero, springs settle at once; the application sets it
+// from the system's setting.
+export global Motion {
+    in-out property <bool> reduce;
+}
+
+// The layout's direction (§9.5): right to left mirrors start and end, arrows and chevrons;
+// transport, the seek bar and the volume do not mirror (physical order).
+export global Layout {
+    in-out property <bool> rtl;
+}
+
 // A touch area that follows the gesture rules (system input events §3.2), for every component
 // that acts on a tap: a tap is down and up within the slop before the long-press time; a long
 // press fires while the finger is still down and nothing follows on release; a contact that went
@@ -85,6 +105,13 @@ export component Screen inherits Rectangle {
     FocusScope {
         focus-on-tab-navigation: false;
         focus-on-click: false;
+        // Before any element sees it: the direction a Tab moves the focus in.
+        capture-key-pressed(e) => {
+            if e.text == Key.Tab || e.text == Key.Backtab {
+                FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+            }
+            reject
+        }
         key-pressed(e) => {
             if e.text == Key.Return || e.text == " " {
                 if root.has-primary && !FocusVisible.on { root.primary(); } else { FocusVisible.on = true; }
@@ -139,7 +166,7 @@ export component Header inherits Rectangle {
                 y: (parent.height - self.height) / 2;
                 viewbox-width: 24;
                 viewbox-height: 24;
-                commands: "M15 6 L9 12 L15 18";
+                commands: Layout.rtl ? "M 9 6 L 15 12 L 9 18" : "M15 6 L9 12 L15 18";
                 stroke: Ink.text;
                 stroke-width: 2px;
                 stroke-line-cap: round;
@@ -188,6 +215,11 @@ export component Button inherits Rectangle {
     in property <string> label;
     in property <float> unit: 1.0;
     in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the button.
+    in property <string> reason;
+    // No fill at rest (an action inside a toast); the press and the hover still show.
+    in property <bool> quiet;
+    property <bool> live: root.enabled && root.reason == "";
     callback clicked();
     // The touch minimum (§8.3) as the default; a screen may give it more.
     height: Tokens.size-target-min;
@@ -198,12 +230,13 @@ export component Button inherits Rectangle {
         : Tokens.border-base;
     background: Blueprint.on
         ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
-        : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-raised.brighter(8%) : Tokens.surface-raised));
-    opacity: root.enabled ? 1 : 0.45;
+        : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-raised.brighter(8%) : (root.quiet ? transparent : Tokens.surface-raised)));
+    opacity: root.live ? 1 : 0.45;
     accessible-role: button;
     accessible-label: root.label;
-    accessible-enabled: root.enabled;
-    accessible-action-default => { if root.enabled { root.clicked(); } }
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
+    accessible-action-default => { if root.live { root.clicked(); } }
     HorizontalLayout {
         padding-left: Tokens.space-group;
         padding-right: Tokens.space-group;
@@ -222,13 +255,13 @@ export component Button inherits Rectangle {
         key-pressed(e) => {
             // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
-            if e.text == Key.Return || e.text == " " { if root.enabled { root.clicked(); } return accept; }
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
     touch := TapArea {
-        unit: root.unit; down => { fs.focus(); } enabled: root.enabled; tapped => { root.clicked(); } }
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -237,6 +270,10 @@ export component Button inherits Rectangle {
 // Its shape follows its content (§15): a word makes a full-width capsule; an icon alone (with
 // its accessible `label` as `name`) makes a 64 px circle.
 export component PrimaryButton inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
     in property <string> label;
     in property <image> icon;
     // The accessible name when it shows an icon only.
@@ -259,9 +296,12 @@ export component PrimaryButton inherits Rectangle {
     background: Blueprint.on
         ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
         : (touch.pressed ? Tokens.brand-pressed : (touch.has-hover ? Tokens.brand-hover : Tokens.brand-base));
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
     accessible-role: button;
     accessible-label: root.round ? root.name : root.label;
-    accessible-action-default => { root.clicked(); }
+    accessible-action-default => { if root.live { root.clicked(); } }
     if root.round: Image {
         source: root.icon;
         width: 32px;
@@ -296,13 +336,13 @@ export component PrimaryButton inherits Rectangle {
         key-pressed(e) => {
             // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
-            if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
     touch := TapArea {
-        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -317,7 +357,7 @@ export component ListLine inherits Rectangle {
     height: root.detail == "" && root.reason == "" ? Tokens.size-row : Tokens.size-row-two;
     background: Blueprint.on
         ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
-        : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-base : transparent));
+        : (root.reason != "" ? transparent : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-base : transparent)));
     // In blueprint, the line's interactive area: its outline.
     border-width: Blueprint.on ? 1px : 0;
     border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
@@ -325,7 +365,7 @@ export component ListLine inherits Rectangle {
     accessible-label: root.label;
     accessible-enabled: root.reason == "";
     accessible-description: root.reason != "" ? root.reason : root.detail;
-    accessible-action-default => { root.clicked(); }
+    accessible-action-default => { if root.reason == "" { root.clicked(); } }
     HorizontalLayout {
         padding-left: Tokens.space-margin;
         padding-right: Tokens.space-margin;
@@ -342,8 +382,10 @@ export component ListLine inherits Rectangle {
             y: (parent.height - self.height) / 2;
             viewbox-width: 24;
             viewbox-height: 24;
-            commands: "M9 6 L15 12 L9 18";
+            // Forward points to the end: mirrored right to left.
+            commands: Layout.rtl ? "M15 6 L9 12 L15 18" : "M9 6 L15 12 L9 18";
             stroke: Ink.secondary;
+            opacity: root.reason == "" ? 1 : 0.45;
             stroke-width: 2px;
             stroke-line-cap: round;
             stroke-line-join: round;
@@ -405,23 +447,26 @@ export component Toggle inherits Rectangle {
         Rectangle {
             width: 40px;
             height: 24px;
+            // Disabled: the whole control dims, not only its label (ui-model §5).
+            opacity: root.reason == "" ? 1 : 0.45;
             y: (parent.height - self.height) / 2;
             border-radius: self.height / 2;
             border-width: Blueprint.on ? 1px : 0;
             border-color: Blueprint.ink.with-alpha(root.on ? Blueprint.text : Blueprint.outline);
             background: Blueprint.on ? Blueprint.ink.with-alpha(root.on ? 0.14 : 0) : (root.on ? Tokens.text-primary : Tokens.surface-active);
             // (the track is the setting's state: structure, in ink)
-            animate background { duration: Tokens.motion-duration-fast; }
+            animate background { duration: Motion.reduce ? 0 : Tokens.motion-duration-fast; }
             Rectangle {
                 width: 18px;
                 height: 18px;
                 y: 3px;
-                x: root.on ? parent.width - self.width - 3px : 3px;
+                // On is at the end: mirrored right to left.
+                x: (root.on != Layout.rtl) ? parent.width - self.width - 3px : 3px;
                 border-radius: self.height / 2;
                 border-width: Blueprint.on ? 1px : 0;
                 border-color: Blueprint.ink.with-alpha(Blueprint.text);
                 background: Blueprint.on ? transparent : (root.on ? Tokens.bg : Tokens.text-secondary);
-                animate x { duration: Tokens.motion-duration-fast; easing: cubic-bezier(0.2, 0, 0, 1); }
+                animate x { duration: Motion.reduce ? 0 : Tokens.motion-duration-fast; easing: cubic-bezier(0.2, 0, 0, 1); }
             }
         }
     }
@@ -464,8 +509,16 @@ export component Slider inherits Rectangle {
     accessible-value-minimum: root.minimum;
     accessible-value-maximum: root.maximum;
     accessible-description: root.adjusting ? "Adjusting: the volume buttons move the value" : "";
+    // A screen reader adjusts it as the buttons do.
+    accessible-action-increment => { root.nudge(root.step); }
+    accessible-action-decrement => { root.nudge(-root.step); }
     property <float> t: (root.value - root.minimum) / max(1, root.maximum - root.minimum);
+    // Where it is drawn: from the start edge, mirrored right to left.
+    property <float> tv: Layout.rtl ? 1 - root.t : root.t;
     property <length> knob: 20px;
+    // The lock ends when the focus hides (a touch elsewhere): Escape then means back again.
+    property <bool> shown: FocusVisible.on;
+    changed shown => { if !self.shown { root.adjusting = false; } }
     // Locked for adjustment (Enter, Action or Space on the focused knob): the volume buttons and
     // the arrows move the value instead of the focus, until it is released the same way or the
     // focus leaves.
@@ -485,7 +538,7 @@ export component Slider inherits Rectangle {
         background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
         // The fill, from the start of the track to the knob's centre.
         Rectangle {
-            x: 0;
+            x: Layout.rtl ? parent.width * (1 - root.t) : 0;
             width: parent.width * root.t;
             border-radius: 2px;
             background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
@@ -496,7 +549,7 @@ export component Slider inherits Rectangle {
     // The focus is on the knob, the control, not on the field: its ring around it; locked for
     // adjustment, the ring turns to live input.
     if fs.has-focus && FocusVisible.on: Rectangle {
-        x: (parent.width - root.knob) * root.t - 4px;
+        x: (parent.width - root.knob) * root.tv - 4px;
         y: (parent.height - root.knob) / 2 - 4px;
         width: root.knob + 8px;
         height: root.knob + 8px;
@@ -508,7 +561,7 @@ export component Slider inherits Rectangle {
     }
     // The knob.
     Rectangle {
-        x: (parent.width - root.knob) * root.t;
+        x: (parent.width - root.knob) * root.tv;
         y: (parent.height - root.knob) / 2;
         width: root.knob;
         height: root.knob;
@@ -518,7 +571,7 @@ export component Slider inherits Rectangle {
         background: Blueprint.on ? (touch.pressed ? Blueprint.live.with-alpha(0.3) : Blueprint.paper) : Tokens.text-primary;
     }
     if Blueprint.on: Text {
-        x: min(parent.width - self.width, max(0, (parent.width - root.knob) * root.t + root.knob / 2 - self.width / 2));
+        x: min(parent.width - self.width, max(0, (parent.width - root.knob) * root.tv + root.knob / 2 - self.width / 2));
         y: 0;
         text: round(root.value);
         font-family: Tokens.font-family-mono;
@@ -541,27 +594,43 @@ export component Slider inherits Rectangle {
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
             if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
-            // ← → step the value by 5 % always (a keyboard's arrows, W3C's slider). The volume
-            // buttons (Tab, Shift+Tab from the shell) and ↑ ↓ (the same buttons by their place,
-            // design system §8.4) only while locked: Volume + up, Volume − down.
-            if e.text == Key.LeftArrow || (root.adjusting && e.text == Key.DownArrow) { root.nudge(-root.step); return accept; }
-            if e.text == Key.RightArrow || (root.adjusting && e.text == Key.UpArrow) { root.nudge(root.step); return accept; }
+            // ← → step the value by 5 % always (a keyboard's arrows, W3C's slider), mirrored right to
+            // left. The volume buttons (Tab, Shift+Tab from the shell) and ↑ ↓ (the same buttons by
+            // their place, design system §8.4) only while locked: Volume + up, Volume − down,
+            // never mirrored.
+            let less = Layout.rtl ? Key.RightArrow : Key.LeftArrow;
+            let more = Layout.rtl ? Key.LeftArrow : Key.RightArrow;
+            if e.text == less || (root.adjusting && e.text == Key.DownArrow) { root.nudge(-root.step); return accept; }
+            if e.text == more || (root.adjusting && e.text == Key.UpArrow) { root.nudge(root.step); return accept; }
             if root.adjusting && e.text == Key.Tab && !e.modifiers.shift { root.nudge(-root.step); return accept; }
             if root.adjusting && (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) { root.nudge(root.step); return accept; }
             reject
         }
     }
-    // One drag path: the value follows the pointer from the press until the release, the knob
-    // centred under it; a tap sets the value where it lands.
+    // The value follows the finger once it moves along the track past the slop (a drag with the
+    // horizontal axis: a vertical move scrolls the page and takes nothing); a tap sets the value
+    // where it lands; a cancel puts back the value it had at the press (input events §3.2).
+    // Right to left, the track runs from the right.
     function set-from(x: length) {
-        root.value = root.minimum + max(0, min(1, (x - root.knob / 2) / (root.width - root.knob))) * (root.maximum - root.minimum);
+        let f = max(0, min(1, (x - root.knob / 2) / (root.width - root.knob)));
+        root.value = root.minimum + (Layout.rtl ? 1 - f : f) * (root.maximum - root.minimum);
         root.changed(root.value);
     }
+    property <bool> dragging;
+    property <float> at-press;
     touch := TouchArea {
         pointer-event(e) => {
-            if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); root.set-from(self.mouse-x); }
+            if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); root.dragging = false; root.at-press = root.value; }
+            if e.kind == PointerEventKind.up && !root.dragging
+                && abs(self.mouse-y - self.pressed-y) < 10px * root.unit { root.set-from(self.mouse-x); }
+            if e.kind == PointerEventKind.cancel { root.value = root.at-press; root.changed(root.value); root.dragging = false; }
         }
-        moved => { if self.pressed { root.set-from(self.mouse-x); } }
+        moved => {
+            if self.pressed && !root.dragging
+                && abs(self.mouse-x - self.pressed-x) >= 10px * root.unit
+                && abs(self.mouse-x - self.pressed-x) > abs(self.mouse-y - self.pressed-y) { root.dragging = true; }
+            if self.pressed && root.dragging { root.set-from(self.mouse-x); }
+        }
     }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
@@ -582,8 +651,16 @@ export component RangeSlider inherits Rectangle {
     accessible-value: round(root.low) + " to " + round(root.high);
     property <length> knob: 20px;
     property <float> span: max(1, root.maximum - root.minimum);
-    property <length> lx: (root.width - root.knob) * (root.low - root.minimum) / root.span;
-    property <length> hx: (root.width - root.knob) * (root.high - root.minimum) / root.span;
+    // Where the knobs are drawn: from the start edge, mirrored right to left (the low knob on the
+    // right).
+    property <length> lx: root.mirror((root.width - root.knob) * (root.low - root.minimum) / root.span);
+    property <length> hx: root.mirror((root.width - root.knob) * (root.high - root.minimum) / root.span);
+    pure function mirror(x: length) -> length { return Layout.rtl ? (root.width - root.knob) - x : x; }
+    accessible-action-increment => { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); }
+    accessible-action-decrement => { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); }
+    // The lock ends when the focus hides.
+    property <bool> shown: FocusVisible.on;
+    changed shown => { if !self.shown { root.adjusting = false; } }
     // Which knob a drag moves, and the one the focus is on: 0 low, 1 high.
     property <int> active;
     // Locked for adjustment, as the slider is (Enter, Action or Space).
@@ -596,8 +673,8 @@ export component RangeSlider inherits Rectangle {
         border-radius: 2px;
         background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
         Rectangle {
-            x: root.lx;
-            width: root.hx - root.lx;
+            x: min(root.lx, root.hx);
+            width: abs(root.hx - root.lx);
             border-radius: 2px;
             background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
         }
@@ -641,7 +718,8 @@ export component RangeSlider inherits Rectangle {
         color: Blueprint.ink.with-alpha(Blueprint.text);
     }
     function value-at(x: length) -> float {
-        return root.minimum + max(0, min(1, (x - root.knob / 2) / (root.width - root.knob))) * root.span;
+        let f = max(0, min(1, (x - root.knob / 2) / (root.width - root.knob)));
+        return root.minimum + (Layout.rtl ? 1 - f : f) * root.span;
     }
     function move-active(v: float) {
         if root.active == 0 { root.low = min(v, root.high); } else { root.high = max(v, root.low); }
@@ -652,9 +730,9 @@ export component RangeSlider inherits Rectangle {
         changed has-focus => {
             if !self.has-focus { root.adjusting = false; }
             if self.has-focus {
-                // Reached from below (Volume +, Shift+Tab): the focus walks it backwards, from
-                // the high knob; from above, from the low one.
-                root.active = FocusReveal.y > root.absolute-position.y ? 1 : 0;
+                // Reached backward (Volume +, Shift+Tab): from the high knob; forward, from the low
+                // one. A touch chose its knob itself: left as it is.
+                if FocusVisible.on { root.active = FocusNav.backward ? 1 : 0; }
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
                 FocusReveal.serial += 1;
@@ -665,8 +743,10 @@ export component RangeSlider inherits Rectangle {
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
             if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
-            if e.text == Key.LeftArrow || (root.adjusting && e.text == Key.DownArrow) { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
-            if e.text == Key.RightArrow || (root.adjusting && e.text == Key.UpArrow) { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); return accept; }
+            let less = Layout.rtl ? Key.RightArrow : Key.LeftArrow;
+            let more = Layout.rtl ? Key.LeftArrow : Key.RightArrow;
+            if e.text == less || (root.adjusting && e.text == Key.DownArrow) { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
+            if e.text == more || (root.adjusting && e.text == Key.UpArrow) { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); return accept; }
             // Locked: the volume buttons move the focused knob (Volume + up, Volume − down).
             if root.adjusting && e.text == Key.Tab && !e.modifiers.shift { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
             if root.adjusting && (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); return accept; }
@@ -676,17 +756,41 @@ export component RangeSlider inherits Rectangle {
             reject
         }
     }
+    // As the slider: a knob is chosen at the press (the nearer; with both together, the one on
+    // the side the touch falls), it moves once the finger travels along the track past the slop
+    // or on a tap, and a cancel puts both back.
+    property <bool> dragging;
+    property <float> low-at-press;
+    property <float> high-at-press;
     touch := TouchArea {
         pointer-event(e) => {
             if e.kind == PointerEventKind.down {
                 FocusVisible.on = false;
                 fs.focus();
-                // The nearer knob, by distance to its centre.
-                root.active = abs(self.mouse-x - (root.lx + root.knob / 2)) <= abs(self.mouse-x - (root.hx + root.knob / 2)) ? 0 : 1;
-                root.move-active(root.value-at(self.mouse-x));
+                root.dragging = false;
+                root.low-at-press = root.low;
+                root.high-at-press = root.high;
+                let dl = abs(self.mouse-x - (root.lx + root.knob / 2));
+                let dh = abs(self.mouse-x - (root.hx + root.knob / 2));
+                root.active = abs(dl - dh) < 1px
+                    ? ((self.mouse-x > root.lx + root.knob / 2) != Layout.rtl ? 1 : 0)
+                    : (dl < dh ? 0 : 1);
+            }
+            if e.kind == PointerEventKind.up && !root.dragging
+                && abs(self.mouse-y - self.pressed-y) < 10px * root.unit { root.move-active(root.value-at(self.mouse-x)); }
+            if e.kind == PointerEventKind.cancel {
+                root.low = root.low-at-press;
+                root.high = root.high-at-press;
+                root.changed(root.low, root.high);
+                root.dragging = false;
             }
         }
-        moved => { if self.pressed { root.move-active(root.value-at(self.mouse-x)); } }
+        moved => {
+            if self.pressed && !root.dragging
+                && abs(self.mouse-x - self.pressed-x) >= 10px * root.unit
+                && abs(self.mouse-x - self.pressed-x) > abs(self.mouse-y - self.pressed-y) { root.dragging = true; }
+            if self.pressed && root.dragging { root.move-active(root.value-at(self.mouse-x)); }
+        }
     }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
@@ -694,6 +798,10 @@ export component RangeSlider inherits Rectangle {
 // One segment of a button group (§15.1): the capsule's outer ends on the first and last segment,
 // flat inner edges, a 1 px split.
 export component Segment inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
     in property <string> label;
     in property <bool> selected;
     in property <bool> first;
@@ -710,10 +818,13 @@ export component Segment inherits Rectangle {
     background: Blueprint.on
         ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.ink.with-alpha(root.selected ? 0.14 : (touch.has-hover ? Blueprint.fill : 0)))
         : (touch.pressed ? Tokens.surface-active : (root.selected ? Tokens.surface-active : Tokens.surface-raised));
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
     accessible-role: button;
     accessible-label: root.label;
     accessible-checked: root.selected;
-    accessible-action-default => { root.clicked(); }
+    accessible-action-default => { if root.live { root.clicked(); } }
     Text {
         text: root.label;
         font-family: Tokens.font-family-ui;
@@ -737,13 +848,13 @@ export component Segment inherits Rectangle {
         key-pressed(e) => {
             // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
-            if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: min(root.height / 2, 8px); border-width: 2px; border-color: Tokens.focus; }
     touch := TapArea {
-        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -751,6 +862,10 @@ export component Segment inherits Rectangle {
 
 // An icon-only action (§15.3): a 24 px glyph in a 48 px hit area, with its accessible name.
 export component IconButton inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
     in property <image> icon;
     in property <string> name;
     in property <float> unit: 1.0;
@@ -763,9 +878,12 @@ export component IconButton inherits Rectangle {
     background: Blueprint.on
         ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
         : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-raised : transparent));
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
     accessible-role: button;
     accessible-label: root.name;
-    accessible-action-default => { root.clicked(); }
+    accessible-action-default => { if root.live { root.clicked(); } }
     Image {
         source: root.icon;
         width: 24px;
@@ -786,19 +904,23 @@ export component IconButton inherits Rectangle {
         key-pressed(e) => {
             // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
-            if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
     touch := TapArea {
-        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
 // One tab (§15): views of the same level. Text, the current one in `text` with a 2 px underline,
 // the others `text-muted`; no container; at least 48 × 48.
 export component Tab inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
     in property <string> label;
     in property <bool> current;
     in property <float> unit: 1.0;
@@ -808,10 +930,13 @@ export component Tab inherits Rectangle {
     background: Blueprint.on
         ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
         : transparent;
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
     accessible-role: tab;
     accessible-label: root.label;
     accessible-checked: root.current;
-    accessible-action-default => { root.clicked(); }
+    accessible-action-default => { if root.live { root.clicked(); } }
     HorizontalLayout {
         padding-left: Tokens.space-unit;
         padding-right: Tokens.space-unit;
@@ -843,13 +968,13 @@ export component Tab inherits Rectangle {
         key-pressed(e) => {
             // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
-            if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-width: 2px; border-color: Tokens.focus; }
     touch := TapArea {
-        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -877,6 +1002,14 @@ export component RadioStops inherits VerticalLayout {
     // choice instead of the focus, until it is released the same way, by Escape, or the focus
     // leaves. ← → move it at any time.
     in-out property <bool> adjusting;
+    // The lock ends when the focus hides.
+    property <bool> shown: FocusVisible.on;
+    changed shown => { if !self.shown { root.adjusting = false; } }
+    // A stop's place along the axis, from the start edge, mirrored right to left.
+    pure function place(i: int, w: length) -> length {
+        let p = i * (w - Tokens.size-target-min) / max(1, root.stops.length - 1);
+        return Layout.rtl ? (w - Tokens.size-target-min) - p : p;
+    }
     function pick(i: int) {
         if i >= 0 && i < root.stops.length && i != root.selected { root.selected = i; root.changed(i); }
     }
@@ -893,7 +1026,7 @@ export component RadioStops inherits VerticalLayout {
             background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
         }
         for stop[i] in root.stops: Rectangle {
-            x: i * (parent.width - Tokens.size-target-min) / max(1, root.stops.length - 1);
+            x: root.place(i, parent.width);
             width: Tokens.size-target-min;
             height: Tokens.size-target-min;
             accessible-role: radio-button;
@@ -912,7 +1045,7 @@ export component RadioStops inherits VerticalLayout {
                 background: Blueprint.on
                     ? (i == root.selected ? Blueprint.ink.with-alpha(0.3) : Blueprint.paper)
                     : (i == root.selected ? Tokens.text-primary : Tokens.color-graphite-700);
-                animate width, height { duration: Tokens.motion-duration-fast; }
+                animate width, height { duration: Motion.reduce ? 0 : Tokens.motion-duration-fast; }
             }
             stop-touch := TapArea {
         unit: root.unit; down => { fs.focus(); } tapped => { root.selected = i; root.changed(i); } }
@@ -931,8 +1064,10 @@ export component RadioStops inherits VerticalLayout {
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
                 if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
                 if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
-                if e.text == Key.LeftArrow || (root.adjusting && e.text == Key.DownArrow) { root.pick(root.selected - 1); return accept; }
-                if e.text == Key.RightArrow || (root.adjusting && e.text == Key.UpArrow) { root.pick(root.selected + 1); return accept; }
+                let less = Layout.rtl ? Key.RightArrow : Key.LeftArrow;
+                let more = Layout.rtl ? Key.LeftArrow : Key.RightArrow;
+                if e.text == less || (root.adjusting && e.text == Key.DownArrow) { root.pick(root.selected - 1); return accept; }
+                if e.text == more || (root.adjusting && e.text == Key.UpArrow) { root.pick(root.selected + 1); return accept; }
                 // Locked: Volume + (Shift+Tab) to the next stop, Volume − (Tab) to the previous,
                 // as a slider's value goes up and down.
                 if root.adjusting && e.text == Key.Tab && !e.modifiers.shift { root.pick(root.selected - 1); return accept; }
@@ -942,7 +1077,7 @@ export component RadioStops inherits VerticalLayout {
         }
         // The focus is on the chosen stop, the control, not on the whole axis (as a slider's knob).
         if fs.has-focus && FocusVisible.on: Rectangle {
-            x: root.selected * (parent.width - Tokens.size-target-min) / max(1, root.stops.length - 1) + (Tokens.size-target-min - 30px) / 2;
+            x: root.place(root.selected, parent.width) + (Tokens.size-target-min - 30px) / 2;
             y: (parent.height - 30px) / 2;
             width: 30px;
             height: 30px;
@@ -959,6 +1094,10 @@ export component RadioStops inherits VerticalLayout {
 
 // A line that picks one item of a list (first-run language): a check on the chosen one.
 export component CheckLine inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
     in property <string> label;
     in property <bool> checked;
     in property <float> unit: 1.0;
@@ -969,10 +1108,13 @@ export component CheckLine inherits Rectangle {
         : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-base : transparent));
     border-width: Blueprint.on ? 1px : 0;
     border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
     accessible-role: radio-button;
     accessible-label: root.label;
     accessible-checked: root.checked;
-    accessible-action-default => { root.clicked(); }
+    accessible-action-default => { if root.live { root.clicked(); } }
     HorizontalLayout {
         padding-left: Tokens.space-margin;
         padding-right: Tokens.space-margin;
@@ -992,13 +1134,13 @@ export component CheckLine inherits Rectangle {
         key-pressed(e) => {
             // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }
-            if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
             reject
         }
     }
     if fs.has-focus && FocusVisible.on: Rectangle { border-width: 2px; border-color: Tokens.focus; }
     touch := TapArea {
-        unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -1028,7 +1170,7 @@ export component ProgressBar inherits Rectangle {
         width: parent.width * max(0, min(1, root.value / max(0.0001, root.maximum)));
         border-radius: 2px;
         background: root.tint;
-        animate width { duration: Tokens.motion-duration-standard; }
+        animate width { duration: Motion.reduce ? 0 : Tokens.motion-duration-standard; }
     }
 }
 
@@ -1109,7 +1251,7 @@ export component Toast inherits Rectangle {
         padding-left: Tokens.space-margin;
         padding-right: root.action == "" ? Tokens.space-margin : 0;
         Label { role: "body"; text: root.text; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; }
-        if root.action != "": Button { label: root.action; unit: root.unit; clicked => { root.acted(); } border-width: 0; background: transparent; }
+        if root.action != "": Button { label: root.action; unit: root.unit; clicked => { root.acted(); } border-width: 0; quiet: true; }
     }
 }
 
@@ -1216,8 +1358,9 @@ export component Group inherits Rectangle {
             focus-on-click: false;
             // Disabled: Action and Enter stop here on their way down, before any child.
             capture-key-pressed(e) => {
-                if !root.enabled && (e.text == Key.Return || e.text == " ") { return accept; }
-                reject
+                if root.enabled || !FocusVisible.on { return reject; }
+                if e.text == Key.Tab || e.text == Key.Backtab || e.text == Key.Escape { return reject; }
+                accept
             }
             VerticalLayout {
                 spacing: Tokens.space-unit;
@@ -1263,14 +1406,32 @@ export component Layer inherits Rectangle {
 // outside it closes it. Open with `show()`.
 export component Overlay inherits PopupWindow {
     in property <float> unit: 1.0;
+    callback dismissed();
     close-policy: close-on-click-outside;
-    Panel {
-        border-width: 1px;
-        border-color: Blueprint.on ? Blueprint.interactive.with-alpha(0.6) : Tokens.border-strong;
-        background: Blueprint.on ? Blueprint.paper : Tokens.surface-raised;
-        VerticalLayout {
-            padding: Tokens.space-unit;
-            @children
+    // Escape (and the way back) closes it: a faceplate without touch is never trapped in it.
+    FocusScope {
+        focus-on-tab-navigation: false;
+        focus-on-click: false;
+        capture-key-pressed(e) => {
+            if e.text == Key.Tab || e.text == Key.Backtab {
+                FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+            }
+            reject
+        }
+        key-pressed(e) => {
+            if e.text == Key.Escape { root.close(); root.dismissed(); return accept; }
+            reject
+        }
+        Panel {
+            border-width: 1px;
+            border-color: Blueprint.on ? Blueprint.interactive.with-alpha(0.6) : Tokens.border-strong;
+            background: Blueprint.on ? Blueprint.paper : Tokens.surface-raised;
+            // Touches on the panel's own parts stay in it.
+            TouchArea {}
+            VerticalLayout {
+                padding: Tokens.space-unit;
+                @children
+            }
         }
     }
 }
@@ -1300,6 +1461,10 @@ export component Modal inherits PopupWindow {
     in property <string> title;
     in property <bool> dismissable: true;
     in property <float> unit: 1.0;
+    // Its primary action (a dialog's confirm): Action with the focus hidden takes it, as a
+    // screen's does.
+    in property <bool> has-primary;
+    callback primary();
     callback dismissed();
     close-policy: no-auto-close;
     x: 0;
@@ -1310,11 +1475,23 @@ export component Modal inherits PopupWindow {
     FocusScope {
         focus-on-tab-navigation: false;
         focus-on-click: false;
+        capture-key-pressed(e) => {
+            if e.text == Key.Tab || e.text == Key.Backtab {
+                FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+            }
+            reject
+        }
         key-pressed(e) => {
             if e.text == Key.Escape && root.dismissable { root.close(); root.dismissed(); return accept; }
+            if e.text == Key.Return || e.text == " " {
+                if root.has-primary && !FocusVisible.on { root.primary(); } else { FocusVisible.on = true; }
+                return accept;
+            }
             reject
         }
         Panel {
+            // Touches inside the dialog never reach the scrim (which dismisses).
+            TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
             x: Tokens.space-margin;
             width: parent.width - 2 * Tokens.space-margin;
             height: body.preferred-height;
