@@ -808,7 +808,8 @@ export component RadioStops inherits VerticalLayout {
         Rectangle {
             x: Tokens.size-target-min / 2;
             width: parent.width - Tokens.size-target-min;
-            y: parent.height / 2;
+            // Centred on the stops: its own thickness taken out.
+            y: (parent.height - self.height) / 2;
             height: Blueprint.on ? 1px : 2px;
             background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
         }
@@ -853,7 +854,16 @@ export component RadioStops inherits VerticalLayout {
                 reject
             }
         }
-        if fs.has-focus && FocusVisible.on: Rectangle { border-radius: Tokens.radius-control; border-width: 2px; border-color: Tokens.focus; }
+        // The focus is on the chosen stop, the control, not on the whole axis (as a slider's knob).
+        if fs.has-focus && FocusVisible.on: Rectangle {
+            x: root.selected * (parent.width - Tokens.size-target-min) / max(1, root.stops.length - 1) + (Tokens.size-target-min - 30px) / 2;
+            y: (parent.height - 30px) / 2;
+            width: 30px;
+            height: 30px;
+            border-radius: 15px;
+            border-width: 2px;
+            border-color: Tokens.focus;
+        }
     }
     HorizontalLayout {
         Label { role: "label"; text: root.stops[root.selected]; horizontal-stretch: 0; wrap: no-wrap; }
