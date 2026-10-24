@@ -383,7 +383,8 @@ Gesture navigation is supported on touch faceplates (SYS-039); it follows Androi
 | Swipe down from the status bar | Notifications and quick settings |
 | Swipe down on Now Playing | Minimise the player |
 
-- Edge zones are 20 px (3 mm) wide. Controls that are dragged (the seek bar, sliders, horizontal lists) exclude their area from the side zones, and exclusions stay small.
+- Edge zones are 20 px (3 mm) wide. Where two meet, the 20 × 20 px square is a **corner**, a region of its own (maintainers, 2026-10-23): a contact that starts there belongs to the corner only, never to either edge, whatever the gesture (a tap, a long press, a hold, a swipe). A swipe from a corner is not an edge swipe; corners have no action yet. Every gesture carries the region it started in: the content, an edge or a corner.
+- Controls that are dragged (the seek bar, sliders, horizontal lists) exclude their area from the side zones, and exclusions stay small.
 - Every gesture has a visible single-tap alternative (back control, chevron, queue control, a "more" control, the status bar), as WCAG 2.2 requires for path gestures and dragging (2.5.1, 2.5.7).
 - Non-touch faceplates navigate with HID keys (§13); gestures are never the only way.
 
