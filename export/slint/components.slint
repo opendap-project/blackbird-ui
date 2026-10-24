@@ -22,10 +22,12 @@ export global FocusVisible {
 
 // Where the focused element is, in window coordinates, so a scrolled screen can bring it into
 // view when the buttons move the focus there (focus on entry and focus navigation, §8.4). A
-// screen binds `serial` and reveals `y` to `y + h` in its scroll area.
+// screen binds `serial` and reveals `y` to `y + h` in its scroll area. `fixed`: the element is
+// outside any scroll area (the header), so nothing scrolls for it, wherever it is.
 export global FocusReveal {
     in-out property <length> y;
     in-out property <length> h;
+    in-out property <bool> fixed;
     in-out property <int> serial;
 }
 
@@ -217,6 +219,7 @@ export component Header inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = true;
                 FocusReveal.serial += 1;
             }
         }
@@ -275,6 +278,7 @@ export component Button inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -360,6 +364,7 @@ export component PrimaryButton inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -437,6 +442,7 @@ export component ListLine inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -521,6 +527,7 @@ export component Toggle inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -638,6 +645,7 @@ export component Slider inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -796,6 +804,7 @@ export component RangeSlider inherits Rectangle {
                 if FocusVisible.on { root.active = FocusNav.backward ? 1 : 0; }
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -908,6 +917,7 @@ export component Segment inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -968,6 +978,7 @@ export component IconButton inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -1036,6 +1047,7 @@ export component Tab inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -1138,6 +1150,7 @@ export component RadioStops inherits VerticalLayout {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
@@ -1214,6 +1227,7 @@ export component CheckLine inherits Rectangle {
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
+                FocusReveal.fixed = false;
                 FocusReveal.serial += 1;
             }
         }
