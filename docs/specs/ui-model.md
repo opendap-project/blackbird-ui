@@ -265,6 +265,8 @@ Images, icons, video, music, metadata and plots reach the screen or the output a
 
 **System layers** (the composer's bands, bottom to top, where the OS Shell will draw its parts; composer spec §2 and §7): `background` → `activity` → `activity-overlay` (the activity's popovers and sheets, still its own surface) → `keyboard` → `system-ui` (status bar and panel, volume, toasts) → `system-view` (the power menu: the full screen, no client gets input) → `trusted` (consent, pairing) → `debug` (the blueprint references) → `touch-indicator`. The last two never take input. A system layer that takes input cancels the activity's contacts and releases its keys (system input events §5.1).
 
+**Backdrop** (a primitive of the layer model; maintainers' direction, 2026-10-24: current patterns, frosted rather than darkened). A layer may treat what is under it: a blur (its radius), a tint (a colour and its strength) or nothing, with a fallback when reduce transparency is on. Built so far: system `opendap-media::blur` (shrunk, blurred once, about a Gaussian; 0.6 ms for the full screen on the virtual board) and Blackbird UI's `Backdrop` global, which the UI primitives activity's dialog tries; the composer will apply it live on the GPU (composer spec §7). Which layers use it, and with which values, is the components' design, not done yet.
+
 **In an activity**, four bands, named, in this order: `content`, `raised` (a sticky header, the playing strip), `overlay` (popovers, menus), `modal` (a dialog and its scrim). Slint's `z` orders siblings only and must be a constant, so Blackbird UI's primitives place themselves in their band; no screen writes a `z`.
 
 | Primitive | Is | z-order | Hit testing | Focus | Screen reader | Enabled | Coordinates | Blueprint |
@@ -284,7 +286,7 @@ Images, icons, video, music, metadata and plots reach the screen or the output a
 3. `Scroll`: edge stretch, snapping, nested hand-over, the indicator, to-the-top (§7).
 4. Stack wrappers with spacing by proximity tokens (§6): `Stack`, `Row`, `Group`, so no screen writes a spacing number.
 5. Enter, exit and navigation transitions (§8), and layout animation for lists.
-6. `Group`, `Layer`, `Overlay`, `Modal` and `Scrim` (§9; the scrim frosts what is under it, `Backdrop`, design system §12.3), with their effects on focus, touch, the screen reader and the blueprint.
+6. `Group`, `Layer`, `Overlay`, `Modal` and `Scrim` (§9), with their effects on focus, touch, the screen reader and the blueprint.
 7. `Cover` (art with its aspect and fit, §6.4), `AspectBox`, and sticky section labels in `Scroll`.
 8. `Stack`, `Row`, `Wrap` with proximity tokens; `AdaptivePair` and the `Layout` context's layout class; `ColumnTrack`; `CoverGrid`; `ReadoutTable` (§6).
 

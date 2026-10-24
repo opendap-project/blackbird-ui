@@ -550,8 +550,6 @@ Only on elements that are actually luminous, or in selected energetic visualisat
 
 Translucency for light guides, overlays and selected atmospheric layers. Text and controls sit on surfaces opaque enough to stay legible.
 
-**Frosted backdrops** (maintainers' direction, 2026-10-24: current patterns, a Gaussian frost rather than a darkened sheet; the recipe decided by Claude under their delegation). What is under a modal is frosted: shrunk four times, blurred once (radius 12 px, three box passes, which approach a Gaussian) and shown under a graphite tint at 24 %, so its shapes read through and the dialog's own surface, opaque, stays legible. It costs one blur when the modal opens and nothing per frame (§17); 0.6 ms for the full screen on the virtual board. With reduce transparency on, the backdrop is the solid tint. The composer will frost live, on the GPU, for the OS Shell's layers and for clients that ask (`ext-background-effect-v1`).
-
 ### 12.4 Effects budget and reduced-effects mode
 
 Every effect costs attention, rendering time and battery. Before adding one, answer:
