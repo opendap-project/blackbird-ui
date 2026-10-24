@@ -64,6 +64,9 @@ export component TapArea inherits TouchArea {
     property <bool> far;
     pointer-event(e) => {
         if e.kind == PointerEventKind.down { root.long = false; root.far = false; FocusVisible.on = false; root.down(); }
+        // The system took the contact (input events §5.1): nothing that started acts, and any
+        // lock ends with the ring.
+        if e.kind == PointerEventKind.cancel { root.long = true; FocusVisible.on = false; }
     }
     moved => {
         if self.pressed && sqrt(pow((self.mouse-x - self.pressed-x) / 1px, 2) + pow((self.mouse-y - self.pressed-y) / 1px, 2)) >= 10 * root.unit { root.far = true; }
@@ -1199,7 +1202,9 @@ export component SeekBar inherits VerticalLayout {
     in property <float> unit: 1.0;
     callback seek(float);
     spacing: Tokens.space-unit;
-    Slider {
+    // Focus on entry lands on its slider.
+    forward-focus: seek-slider;
+    seek-slider := Slider {
         minimum: 0;
         maximum: root.length;
         value <=> root.position;
@@ -1300,12 +1305,24 @@ export component EmptyState inherits VerticalLayout {
     callback acted();
     spacing: Tokens.space-unit;
     alignment: start;
-    Image { source: root.icon; width: 32px; height: 32px; colorize: Ink.muted; }
+    // A fixed-width icon in a row aligned to the start: alone in the column it would cap the
+    // column's width (ui-model §6).
+    HorizontalLayout { alignment: start; Image { source: root.icon; width: 32px; height: 32px; colorize: Ink.muted; } }
     Rectangle { height: Tokens.space-unit; }
     Text { text: root.title; font-family: Tokens.font-family-ui; font-size: Tokens.font-size-body-large; color: Ink.text; wrap: word-wrap; }
     Label { role: "body"; muted: true; text: root.hint; }
     if root.action != "": Rectangle { height: Tokens.space-group; }
-    if root.action != "": Button { label: root.action; unit: root.unit; clicked => { root.acted(); } }
+    // Its action takes the focus on entry (always present, so the focus can be forwarded to it;
+    // without an action it has no size and is skipped).
+    forward-focus: action-button;
+    action-button := Button {
+        label: root.action;
+        unit: root.unit;
+        visible: root.action != "";
+        enabled: root.action != "";
+        height: root.action != "" ? Tokens.size-target-min : 0;
+        clicked => { root.acted(); }
+    }
 }
 
 // The error state (ADR 0003): icon and words (never colour alone), what failed and why, the
@@ -1320,7 +1337,9 @@ export component ErrorState inherits VerticalLayout {
     alignment: start;
     accessible-role: AccessibleRole.text;
     accessible-label: root.title + ". " + root.reason;
-    Image { source: @image-url("../icons/24/error.svg"); width: 32px; height: 32px; colorize: Tokens.state-error; }
+    // A fixed-width icon in a row aligned to the start: alone in the column it would cap the
+    // column's width (ui-model §6).
+    HorizontalLayout { alignment: start; Image { source: @image-url("../icons/24/error.svg"); width: 32px; height: 32px; colorize: Tokens.state-error; } }
     Rectangle { height: Tokens.space-unit; }
     Text { text: root.title; font-family: Tokens.font-family-ui; font-size: Tokens.font-size-body-large; color: Ink.text; wrap: word-wrap; }
     Label { role: "body"; muted: true; text: root.reason; }
