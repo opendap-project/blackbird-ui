@@ -130,7 +130,7 @@ How OpenDAP's interface is put together, for whoever writes an activity or a com
 
 **Avoid:** absolute positions for layout; a number for a space or a size; a component reading its own size to change it (a binding loop in Slint: read the size the parent gives); breakpoints by device name; a constraint solver; nested intrinsic passes; a layout pass per frame.
 
-**Slint gaps** to report upstream, each with a minimal reproduction: a lazy grid (or virtualization in `FlexboxLayout` and `GridLayout`); horizontal `ListView` virtualization; baseline alignment; OpenType features (`tnum`); an `aspect-ratio` property; the allocated size without a binding loop (a `FlexboxLayout` whose direction follows a width panics with "Recursion detected", so a generic `AdaptiveRow` waits for it); sticky positions in `Flickable`; named grid areas and auto-fit tracks; overscroll and snap hooks (§7).
+**Slint gaps** to report upstream, each with a minimal reproduction: a lazy grid (or virtualization in `FlexboxLayout` and `GridLayout`); horizontal `ListView` virtualization; baseline alignment; OpenType features (`tnum`); an `aspect-ratio` property; the allocated size without a binding loop (a `FlexboxLayout` whose direction follows a width panics with "Recursion detected", so a generic `AdaptiveRow` waits for it); sticky positions in `Flickable`; named grid areas and auto-fit tracks; overscroll and snap hooks (§7); nested scrolling: a `Flickable` takes any drag past its threshold from the controls inside it, and none can keep it (no "disallow intercept", no nested scroll connection), so a vertical list or a dial cannot be dragged inside a vertically scrolled page (the UI primitives activity's Spaces screen reproduces it).
 
 ### 6.4 Container and content
 
