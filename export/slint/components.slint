@@ -48,6 +48,8 @@ export component Header inherits Rectangle {
     in property <float> unit: 1.0;
     callback back();
     height: Tokens.size-target-min;
+    // Focus on entry lands on the way back when the screen has nothing else first.
+    public function focus-back() { if root.can-back { back-fs.focus(); } }
     HorizontalLayout {
         padding-right: Tokens.space-margin;
         padding-left: root.can-back ? 0 : Tokens.space-margin;
@@ -81,6 +83,17 @@ export component Header inherits Rectangle {
         Label { role: "title"; text: root.title; vertical-alignment: center; wrap: no-wrap; overflow: elide; }
     }
     if Blueprint.on: Rectangle { y: parent.height - 1px; height: 1px; background: Ink.line; }
+    // The way back takes the focus as any other control (focus on entry, design system §8.4).
+    back-fs := FocusScope {
+        x: 0;
+        width: root.can-back ? Tokens.size-target-min : 0;
+        enabled: root.can-back;
+        key-pressed(e) => {
+            if e.text == Key.Return || e.text == " " { root.back(); return accept; }
+            reject
+        }
+    }
+    if back-fs.has-focus: Rectangle { x: 0; width: Tokens.size-target-min; border-width: 2px; border-color: Tokens.focus; }
 }
 
 // A secondary action (§15): a graphite surface with its label; in blueprint, its outline.
@@ -109,6 +122,15 @@ export component Button inherits Rectangle {
         padding-right: Tokens.space-group;
         Label { role: "label"; text: root.label; horizontal-alignment: center; vertical-alignment: center; wrap: no-wrap; overflow: elide; }
     }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Return || e.text == " " { if root.enabled { root.clicked(); } return accept; }
+            reject
+        }
+    }
+    if fs.has-focus: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
     touch := TouchArea { enabled: root.enabled; clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
@@ -142,6 +164,15 @@ export component PrimaryButton inherits Rectangle {
             vertical-alignment: center;
         }
     }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
+            reject
+        }
+    }
+    if fs.has-focus: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
     touch := TouchArea { clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
@@ -188,6 +219,15 @@ export component ListLine inherits Rectangle {
         }
     }
     Rectangle { y: parent.height - Tokens.size-group-divider; height: Tokens.size-group-divider; background: Ink.line; }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
+            reject
+        }
+    }
+    if fs.has-focus: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
     touch := TouchArea { clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
@@ -234,6 +274,15 @@ export component Toggle inherits Rectangle {
             }
         }
     }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Return || e.text == " " { root.on = !root.on; root.toggled(root.on); return accept; }
+            reject
+        }
+    }
+    if fs.has-focus: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
     touch := TouchArea { clicked => { root.on = !root.on; root.toggled(root.on); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
@@ -290,6 +339,17 @@ export component Slider inherits Rectangle {
         font-size: 10px;
         color: Blueprint.ink.with-alpha(Blueprint.text);
     }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusScope {
+        key-pressed(e) => {
+            // Arrows step the value by 5 %.
+            if e.text == Key.LeftArrow || e.text == Key.DownArrow { root.value = max(root.minimum, root.value - (root.maximum - root.minimum) / 20); root.changed(root.value); return accept; }
+            if e.text == Key.RightArrow || e.text == Key.UpArrow { root.value = min(root.maximum, root.value + (root.maximum - root.minimum) / 20); root.changed(root.value); return accept; }
+            reject
+        }
+    }
+    if fs.has-focus: Rectangle { border-radius: 4px; border-width: 2px; border-color: Tokens.focus; }
     touch := TouchArea {
         pointer-event(e) => {
             if e.kind == PointerEventKind.down || (e.kind == PointerEventKind.move && self.pressed) {
@@ -338,6 +398,15 @@ export component Segment inherits Rectangle {
         horizontal-alignment: center;
         vertical-alignment: center;
     }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
+            reject
+        }
+    }
+    if fs.has-focus: Rectangle { border-radius: min(root.height / 2, 8px); border-width: 2px; border-color: Tokens.focus; }
     touch := TouchArea { clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }

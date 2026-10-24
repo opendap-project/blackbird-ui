@@ -361,6 +361,8 @@ Every interaction gets immediate, unambiguous feedback within the [experience bu
 
 Animation clarifies a change of state; it never decorates every interaction.
 
+**Focus on entry** (maintainers, 2026-10-23). Entering a view or an activity moves the focus to its first focusable element, so the buttons alone (Volume to move, Action to take it) work from the first press: the power menu opens with its first choice focused.
+
 ### 8.5 Gestures
 
 Gesture navigation is supported on touch faceplates (SYS-039); it follows Android's model where it fits, and uses the bottom edge for "more" because the T1 has no phone home screen (§8.1).
