@@ -1554,11 +1554,24 @@ export component Layer inherits Rectangle {
 // outside it closes it. Open with `show()`.
 export component Overlay inherits PopupWindow {
     in property <float> unit: 1.0;
+    // Where its panel goes (from opendap-input's anchor::place) and how wide: the popup itself
+    // covers the window (x, y, width, height of the window), so a tap outside the panel is seen.
+    in property <length> panel-x;
+    in property <length> panel-y;
+    in property <length> panel-width;
     callback dismissed();
     // Past its first or last element (system input events §3.7: a popover does not wrap, only a
     // modal does): the runtime sends the opposite key back, as for the screen's ends.
     callback edge(bool);
-    close-policy: close-on-click-outside;
+    close-policy: no-auto-close;
+    // A tap outside the panel closes it and, as any touch, hides the focus ring (design system
+    // §8.4); nothing under it receives the tap. Decided by Claude under the maintainers'
+    // delegation, best UX (2026-10-24).
+    TouchArea {
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down { FocusVisible.on = false; root.close(); root.dismissed(); }
+        }
+    }
     // Escape (and the way back) closes it: a faceplate without touch is never trapped in it.
     FocusScope {
         focus-on-tab-navigation: false;
@@ -1580,12 +1593,16 @@ export component Overlay inherits PopupWindow {
             focus-gained(reason) => { if reason == FocusReason.tab-navigation { root.edge(false); } }
         }
         Panel {
+            x: root.panel-x;
+            y: root.panel-y;
+            width: root.panel-width;
+            height: body.preferred-height;
             border-width: 1px;
             border-color: Blueprint.on ? Blueprint.interactive.with-alpha(0.6) : Tokens.border-strong;
             background: Blueprint.on ? Blueprint.paper : Tokens.surface-raised;
-            // Touches on the panel's own parts stay in it.
-            TouchArea {}
-            VerticalLayout {
+            // Touches on the panel's own parts stay in it, and hide the ring as any touch does.
+            TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+            body := VerticalLayout {
                 padding: Tokens.space-unit;
                 @children
             }
