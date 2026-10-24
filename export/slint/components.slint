@@ -389,7 +389,17 @@ export component PrimaryButton inherits Rectangle {
             reject
         }
     }
-    if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
+    // Outside the button, with a gap: the ring is the accent's lighter tone, which an accent fill
+    // would swallow (WCAG 2.4.13: the focused state must stand out from the unfocused one).
+    if fs.has-focus && FocusVisible.on: Rectangle {
+        x: -4px;
+        y: -4px;
+        width: parent.width + 8px;
+        height: parent.height + 8px;
+        border-radius: root.border-radius + 4px;
+        border-width: 2px;
+        border-color: Tokens.focus;
+    }
     touch := TapArea {
         unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
