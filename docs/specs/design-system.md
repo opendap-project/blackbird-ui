@@ -363,6 +363,8 @@ Animation clarifies a change of state; it never decorates every interaction.
 
 **States** ([ADR 0003](../adr/0003-screen-states.md)). Empty: what is empty, how to fill it, at most one action. Loading: the structure at once, a 2 px line past 300 ms, "Loading…" past 1 s, a value and Cancel when the length is known. Error: icon and words, what failed and why, the next step and its action, never looking like loading. Disabled: 45 % opacity with its reason always visible under it, still focusable.
 
+**Sliders under the buttons** (maintainers, 2026-10-23). A slider's focus is on its knob, the control, not on the field: the focus moves through it like any control. Enter, Action or Space locks it for adjustment (a thicker ring with a filled halo, in the accent of live input); while locked, Volume + raises the value and Volume − lowers it, held with the same acceleration, and the same keys or leaving release it. A range takes the focus one knob at a time, low then high.
+
 **Focus on entry** (maintainers, 2026-10-23). Entering a view or an activity moves the focus to its first focusable element, so the buttons alone (Volume to move, Action to take it) work from the first press: the power menu opens with its first choice focused.
 
 ### 8.5 Gestures

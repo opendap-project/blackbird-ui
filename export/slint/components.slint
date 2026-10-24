@@ -371,8 +371,18 @@ export component Slider inherits Rectangle {
     accessible-value: round(root.value);
     accessible-value-minimum: root.minimum;
     accessible-value-maximum: root.maximum;
+    accessible-description: root.adjusting ? "Adjusting: the volume buttons move the value" : "";
     property <float> t: (root.value - root.minimum) / max(1, root.maximum - root.minimum);
     property <length> knob: 20px;
+    // Locked for adjustment (Enter, Action or Space on the focused knob): the volume buttons and
+    // the arrows move the value instead of the focus, until it is released the same way or the
+    // focus leaves.
+    in-out property <bool> adjusting;
+    property <float> step: (root.maximum - root.minimum) / 20;
+    function nudge(by: float) {
+        root.value = max(root.minimum, min(root.maximum, root.value + by));
+        root.changed(root.value);
+    }
     // The track.
     Rectangle {
         x: root.knob / 2;
@@ -381,7 +391,9 @@ export component Slider inherits Rectangle {
         height: Blueprint.on ? 1px : 4px;
         border-radius: 2px;
         background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
+        // The fill, from the start of the track to the knob's centre.
         Rectangle {
+            x: 0;
             width: parent.width * root.t;
             border-radius: 2px;
             background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
@@ -389,6 +401,19 @@ export component Slider inherits Rectangle {
     }
     if Blueprint.on: Rectangle { x: root.knob / 2; width: 1px; y: (parent.height - 9px) / 2; height: 9px; background: Blueprint.ink.with-alpha(Blueprint.secondary); }
     if Blueprint.on: Rectangle { x: parent.width - root.knob / 2 - 1px; width: 1px; y: (parent.height - 9px) / 2; height: 9px; background: Blueprint.ink.with-alpha(Blueprint.secondary); }
+    // The focus is on the knob, the control, not on the field: its ring around it; locked for
+    // adjustment, the ring turns to live input.
+    if fs.has-focus: Rectangle {
+        x: (parent.width - root.knob) * root.t - 4px;
+        y: (parent.height - root.knob) / 2 - 4px;
+        width: root.knob + 8px;
+        height: root.knob + 8px;
+        border-radius: self.width / 2;
+        // Locked for adjustment it reads apart from plain focus: a thicker ring and a filled halo.
+        border-width: root.adjusting ? 3px : 2px;
+        border-color: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base) : Tokens.focus;
+        background: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base).with-alpha(0.45) : transparent;
+    }
     // The knob.
     Rectangle {
         x: (parent.width - root.knob) * root.t;
@@ -412,6 +437,7 @@ export component Slider inherits Rectangle {
     forward-focus: fs;
     fs := FocusScope {
         changed has-focus => {
+            if !self.has-focus { root.adjusting = false; }
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
@@ -419,13 +445,17 @@ export component Slider inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            // Arrows step the value by 5 %.
-            if e.text == Key.LeftArrow || e.text == Key.DownArrow { root.value = max(root.minimum, root.value - (root.maximum - root.minimum) / 20); root.changed(root.value); return accept; }
-            if e.text == Key.RightArrow || e.text == Key.UpArrow { root.value = min(root.maximum, root.value + (root.maximum - root.minimum) / 20); root.changed(root.value); return accept; }
+            if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
+            if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
+            // Arrows step the value by 5 % always; the volume buttons (Tab, Shift+Tab from the
+            // shell) only while locked: Volume + up, Volume − down.
+            if e.text == Key.LeftArrow || e.text == Key.DownArrow { root.nudge(-root.step); return accept; }
+            if e.text == Key.RightArrow || e.text == Key.UpArrow { root.nudge(root.step); return accept; }
+            if root.adjusting && e.text == Key.Tab && !e.modifiers.shift { root.nudge(-root.step); return accept; }
+            if root.adjusting && (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) { root.nudge(root.step); return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-radius: 4px; border-width: 2px; border-color: Tokens.focus; }
     // One drag path: the value follows the pointer from the press until the release, the knob
     // centred under it; a tap sets the value where it lands.
     function set-from(x: length) {
@@ -441,8 +471,6 @@ export component Slider inherits Rectangle {
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
-// One segment of a button group (§15.1): the capsule's outer ends on the first and last segment,
-// flat inner edges, a 1 px split.
 // A range: two knobs on one track, low and high; a press takes the nearer knob, and they never
 // cross. In blueprint, the track is a dimension line and each value shows over its knob.
 export component RangeSlider inherits Rectangle {
@@ -461,8 +489,10 @@ export component RangeSlider inherits Rectangle {
     property <float> span: max(1, root.maximum - root.minimum);
     property <length> lx: (root.width - root.knob) * (root.low - root.minimum) / root.span;
     property <length> hx: (root.width - root.knob) * (root.high - root.minimum) / root.span;
-    // Which knob a drag moves: 0 low, 1 high; the focused one for the arrows.
+    // Which knob a drag moves, and the one the focus is on: 0 low, 1 high.
     property <int> active;
+    // Locked for adjustment, as the slider is (Enter, Action or Space).
+    in-out property <bool> adjusting;
     Rectangle {
         x: root.knob / 2;
         width: parent.width - root.knob;
@@ -483,9 +513,21 @@ export component RangeSlider inherits Rectangle {
         width: root.knob;
         height: root.knob;
         border-radius: root.knob / 2;
-        border-width: Blueprint.on ? 1px : (fs.has-focus && root.active == i ? 2px : 0);
-        border-color: Blueprint.on ? (touch.pressed && root.active == i ? Blueprint.live : Blueprint.interactive) : Tokens.focus;
+        border-width: Blueprint.on ? 1px : 0;
+        border-color: touch.pressed && root.active == i ? Blueprint.live : Blueprint.interactive;
         background: Blueprint.on ? (touch.pressed && root.active == i ? Blueprint.live.with-alpha(0.3) : Blueprint.paper) : Tokens.text-primary;
+    }
+    // The focus is on one knob at a time, the control: its ring; locked, in live colour.
+    if fs.has-focus: Rectangle {
+        x: (root.active == 0 ? root.lx : root.hx) - 4px;
+        y: (parent.height - root.knob) / 2 - 4px;
+        width: root.knob + 8px;
+        height: root.knob + 8px;
+        border-radius: self.width / 2;
+        // Locked for adjustment it reads apart from plain focus: a thicker ring and a filled halo.
+        border-width: root.adjusting ? 3px : 2px;
+        border-color: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base) : Tokens.focus;
+        background: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base).with-alpha(0.45) : transparent;
     }
     if Blueprint.on: Text {
         x: max(0, root.lx + root.knob / 2 - self.width / 2);
@@ -513,6 +555,7 @@ export component RangeSlider inherits Rectangle {
     forward-focus: fs;
     fs := FocusScope {
         changed has-focus => {
+            if !self.has-focus { root.adjusting = false; }
             if self.has-focus {
                 FocusReveal.y = root.absolute-position.y;
                 FocusReveal.h = root.height;
@@ -520,10 +563,16 @@ export component RangeSlider inherits Rectangle {
             }
         }
         key-pressed(e) => {
-            if e.text == Key.Tab && !e.modifiers.shift && root.active == 0 { root.active = 1; return accept; }
-            if e.text == Key.Tab && e.modifiers.shift && root.active == 1 { root.active = 0; return accept; }
+            if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
+            if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
             if e.text == Key.LeftArrow || e.text == Key.DownArrow { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
             if e.text == Key.RightArrow || e.text == Key.UpArrow { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); return accept; }
+            // Locked: the volume buttons move the focused knob (Volume + up, Volume − down).
+            if root.adjusting && e.text == Key.Tab && !e.modifiers.shift { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
+            if root.adjusting && (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); return accept; }
+            // Free: the focus walks low → high, then leaves.
+            if e.text == Key.Tab && !e.modifiers.shift && root.active == 0 { root.active = 1; return accept; }
+            if (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) && root.active == 1 { root.active = 0; return accept; }
             reject
         }
     }
@@ -540,6 +589,8 @@ export component RangeSlider inherits Rectangle {
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
+// One segment of a button group (§15.1): the capsule's outer ends on the first and last segment,
+// flat inner edges, a 1 px split.
 export component Segment inherits Rectangle {
     in property <string> label;
     in property <bool> selected;
