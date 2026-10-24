@@ -11,6 +11,15 @@ import { Tokens } from "tokens.slint";
 import { Blueprint, Measure, BlueprintGrid } from "blueprint.slint";
 export { Blueprint, Measure, BlueprintGrid }
 
+// Whether the focus is shown (CSS :focus-visible, Android's touch mode): the focus is always
+// somewhere (focus on entry), but its ring shows only once the buttons or a keyboard are used, and
+// hides again when the screen is touched. Touching an element gives it the focus (hidden), so the
+// buttons continue from where the finger was; a pointer hovering moves nothing. The first key
+// while the focus is hidden only reveals where it is; it neither moves nor takes it.
+export global FocusVisible {
+    in-out property <bool> on;
+}
+
 // Where the focused element is, in window coordinates, so a scrolled screen can bring it into
 // view when the buttons move the focus there (focus on entry and focus navigation, §8.4). A
 // screen binds `serial` and reveals `y` to `y + h` in its scroll area.
@@ -100,12 +109,15 @@ export component Header inherits Rectangle {
         visible: root.can-back;
         enabled: root.can-back;
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.back(); return accept; }
             reject
         }
-        back-touch := TouchArea { enabled: root.can-back; clicked => { root.back(); } }
+        back-touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; back-fs.focus(); } } enabled: root.can-back; clicked => { root.back(); } }
     }
-    if back-fs.has-focus: Rectangle { x: 0; width: Tokens.size-target-min; border-width: 2px; border-color: Tokens.focus; }
+    if back-fs.has-focus && FocusVisible.on: Rectangle { x: 0; width: Tokens.size-target-min; border-width: 2px; border-color: Tokens.focus; }
 }
 
 // A secondary action (§15): a graphite surface with its label; in blueprint, its outline.
@@ -145,12 +157,15 @@ export component Button inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { if root.enabled { root.clicked(); } return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea { enabled: root.enabled; clicked => { root.clicked(); } }
+    if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
+    touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } enabled: root.enabled; clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -211,12 +226,15 @@ export component PrimaryButton inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea { clicked => { root.clicked(); } }
+    if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
+    touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -276,12 +294,15 @@ export component ListLine inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { if root.reason == "" { root.clicked(); } return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea { clicked => { if root.reason == "" { root.clicked(); } } }
+    if fs.has-focus && FocusVisible.on: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
+    touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { if root.reason == "" { root.clicked(); } } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -347,12 +368,15 @@ export component Toggle inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { if root.reason == "" { root.on = !root.on; root.toggled(root.on); } return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea { clicked => { if root.reason == "" { root.on = !root.on; root.toggled(root.on); } } }
+    if fs.has-focus && FocusVisible.on: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
+    touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { if root.reason == "" { root.on = !root.on; root.toggled(root.on); } } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -403,7 +427,7 @@ export component Slider inherits Rectangle {
     if Blueprint.on: Rectangle { x: parent.width - root.knob / 2 - 1px; width: 1px; y: (parent.height - 9px) / 2; height: 9px; background: Blueprint.ink.with-alpha(Blueprint.secondary); }
     // The focus is on the knob, the control, not on the field: its ring around it; locked for
     // adjustment, the ring turns to live input.
-    if fs.has-focus: Rectangle {
+    if fs.has-focus && FocusVisible.on: Rectangle {
         x: (parent.width - root.knob) * root.t - 4px;
         y: (parent.height - root.knob) / 2 - 4px;
         width: root.knob + 8px;
@@ -445,6 +469,8 @@ export component Slider inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
             if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
             // Arrows step the value by 5 % always; the volume buttons (Tab, Shift+Tab from the
@@ -464,7 +490,7 @@ export component Slider inherits Rectangle {
     }
     touch := TouchArea {
         pointer-event(e) => {
-            if e.kind == PointerEventKind.down { root.set-from(self.mouse-x); }
+            if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); root.set-from(self.mouse-x); }
         }
         moved => { if self.pressed { root.set-from(self.mouse-x); } }
     }
@@ -518,7 +544,7 @@ export component RangeSlider inherits Rectangle {
         background: Blueprint.on ? (touch.pressed && root.active == i ? Blueprint.live.with-alpha(0.3) : Blueprint.paper) : Tokens.text-primary;
     }
     // The focus is on one knob at a time, the control: its ring; locked, in live colour.
-    if fs.has-focus: Rectangle {
+    if fs.has-focus && FocusVisible.on: Rectangle {
         x: (root.active == 0 ? root.lx : root.hx) - 4px;
         y: (parent.height - root.knob) / 2 - 4px;
         width: root.knob + 8px;
@@ -563,6 +589,8 @@ export component RangeSlider inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
             if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
             if e.text == Key.LeftArrow || e.text == Key.DownArrow { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); return accept; }
@@ -579,6 +607,8 @@ export component RangeSlider inherits Rectangle {
     touch := TouchArea {
         pointer-event(e) => {
             if e.kind == PointerEventKind.down {
+                FocusVisible.on = false;
+                fs.focus();
                 // The nearer knob, by distance to its centre.
                 root.active = abs(self.mouse-x - (root.lx + root.knob / 2)) <= abs(self.mouse-x - (root.hx + root.knob / 2)) ? 0 : 1;
                 root.move-active(root.value-at(self.mouse-x));
@@ -633,12 +663,15 @@ export component Segment inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-radius: min(root.height / 2, 8px); border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea { clicked => { root.clicked(); } }
+    if fs.has-focus && FocusVisible.on: Rectangle { border-radius: min(root.height / 2, 8px); border-width: 2px; border-color: Tokens.focus; }
+    touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -679,12 +712,15 @@ export component IconButton inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea { clicked => { root.clicked(); } }
+    if fs.has-focus && FocusVisible.on: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
+    touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -733,12 +769,15 @@ export component Tab inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea { clicked => { root.clicked(); } }
+    if fs.has-focus && FocusVisible.on: Rectangle { border-width: 2px; border-color: Tokens.focus; }
+    touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
@@ -795,7 +834,8 @@ export component RadioStops inherits VerticalLayout {
                     : (i == root.selected ? Tokens.text-primary : Tokens.color-graphite-700);
                 animate width, height { duration: Tokens.motion-duration-fast; }
             }
-            stop-touch := TouchArea { clicked => { root.selected = i; root.changed(i); } }
+            stop-touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.selected = i; root.changed(i); } }
         }
         fs := FocusScope {
         changed has-focus => {
@@ -806,12 +846,14 @@ export component RadioStops inherits VerticalLayout {
             }
         }
             key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
                 if e.text == Key.LeftArrow && root.selected > 0 { root.selected -= 1; root.changed(root.selected); return accept; }
                 if e.text == Key.RightArrow && root.selected < root.stops.length - 1 { root.selected += 1; root.changed(root.selected); return accept; }
                 reject
             }
         }
-        if fs.has-focus: Rectangle { border-radius: Tokens.radius-control; border-width: 2px; border-color: Tokens.focus; }
+        if fs.has-focus && FocusVisible.on: Rectangle { border-radius: Tokens.radius-control; border-width: 2px; border-color: Tokens.focus; }
     }
     HorizontalLayout {
         Label { role: "label"; text: root.stops[root.selected]; horizontal-stretch: 0; wrap: no-wrap; }
@@ -852,12 +894,15 @@ export component CheckLine inherits Rectangle {
             }
         }
         key-pressed(e) => {
+            // Hidden focus: the first key only reveals it.
+            if !FocusVisible.on { FocusVisible.on = true; return accept; }
             if e.text == Key.Return || e.text == " " { root.clicked(); return accept; }
             reject
         }
     }
-    if fs.has-focus: Rectangle { border-width: 2px; border-color: Tokens.focus; }
-    touch := TouchArea { clicked => { root.clicked(); } }
+    if fs.has-focus && FocusVisible.on: Rectangle { border-width: 2px; border-color: Tokens.focus; }
+    touch := TouchArea {
+        pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); } } clicked => { root.clicked(); } }
     Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
 }
 
