@@ -214,6 +214,20 @@ Lists and grids of any size build only what the viewport needs, in bounded memor
 
 Slint's `ListView` virtualizes one vertical list of rows of one kind; these primitives cover the rest (grids, mixed rows, measured sizes, anchoring, horizontal rows) on top of a plain model, as `CoverGrid` and `Scroll` will.
 
+### 7.2 Data on demand
+
+What the window needs is loaded when it is needed, and let go when it is not (system's `opendap-layout::data`; planners only, which say what to fetch, cancel and evict, while the caller runs the fetches however it runs work, so they test with a virtual clock). Tried in the Virtual screen: pages that arrive 250 ms later, prefetch cancelled when a fling overtakes it, covers that wait for the scroll to slow, a cache that stays at its budget.
+
+| Primitive | Does | Directives | From |
+|---|---|---|---|
+| Pages | Items a page (or a cursor's chunk) at a time: the visible pages first, then prefetch in the scroll's direction; placeholders of the right size until a page arrives; cancel what went far; evict past a budget; a cursor learns its end; a late answer for a cancelled page is ignored; a failed page shows an error in place and retries | `page_size`, `ahead`, `keep` | Android's Paging, iOS's prefetching data sources |
+| Requests | One request per key in flight (asking twice joins it); generations, so an answer to a superseded request never overwrites the newer one | none | every data layer's lesson |
+| Cache | Least recently used goes first, by cost (a decoded cover's bytes), within a budget | `budget` | image caches everywhere |
+| Gate | The cheap (text, a page of rows) loads at once; the costly (decoding a cover, a waveform) only while the scroll is slow, so a fling keeps its 60 fps (T1-056) | `fast` (px/s) | iOS's and Android's deferred image loading |
+| Stream | Results in parts (a search over the library): appended without moving what is shown, deduplicated by key, dropped when their query is no longer current | none | incremental search |
+
+Proposed values (pages of 50, two ahead, twelve kept; covers decoded below 1500 px/s) are to measure on the T1.
+
 ## 8. Motion
 
 **Proven:** durations and easing curves as tokens (Material, the design system's `motion.*`); springs for anything a hand moves, since they carry the gesture's velocity and can be interrupted (SwiftUI, Compose, UIKit dynamics); enter and exit transitions for what appears and disappears (SwiftUI transitions, Framer's presence); layout animation of position changes (FLIP); shared-element transitions between screens; reduce motion that keeps the information and drops the movement.
