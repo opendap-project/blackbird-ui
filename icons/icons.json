@@ -922,6 +922,16 @@
       "source": "tabler:outline/terminal-2@3.49.0"
     },
     {
+      "name": "screenshot",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Screenshot"
+      },
+      "style": "outline",
+      "source": "tabler:outline/screenshot@3.49.0"
+    },
+    {
       "name": "edit",
       "grid": 24,
       "category": "action",

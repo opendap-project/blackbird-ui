@@ -94,6 +94,7 @@ keyboard = ["outline", "keyboard"]
 theme = ["outline", "palette"]
 capability = ["outline", "puzzle"]
 developer = ["outline", "terminal-2"]
+screenshot = ["outline", "screenshot"]
 
 # action
 back = ["outline", "chevron-left"]

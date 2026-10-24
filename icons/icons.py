@@ -134,6 +134,7 @@ CATALOGUE = [
     ("theme", "device", "Theme"),
     ("capability", "device", "Capability"),
     ("developer", "device", "Developer"),
+    ("screenshot", "device", "Screenshot"),
     ("edit", "action", "Edit"),
     ("restore", "action", "Restore"),
     ("loading", "state", "Loading"),
