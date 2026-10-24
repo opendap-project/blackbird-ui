@@ -162,6 +162,15 @@ export component Header inherits Rectangle {
         // stayed on the next screen.
         focus-on-tab-navigation: root.can-back;
         focus-on-click: root.can-back;
+        // Like every focusable element, it says where it is, so the next one knows from which
+        // side the focus came (a range or a list entered from below starts at its end).
+        changed has-focus => {
+            if self.has-focus {
+                FocusReveal.y = root.absolute-position.y;
+                FocusReveal.h = root.height;
+                FocusReveal.serial += 1;
+            }
+        }
         key-pressed(e) => {
             // Hidden focus: a navigation key only reveals it; Action and Escape go to the screen.
             if !FocusVisible.on { if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; } FocusVisible.on = true; return accept; }

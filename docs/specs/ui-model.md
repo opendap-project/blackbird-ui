@@ -228,11 +228,28 @@ What the window needs is loaded when it is needed, and let go when it is not (sy
 
 Proposed values (pages of 50, two ahead, twelve kept; covers decoded below 1500 px/s) are to measure on the T1.
 
+### 7.3 Media
+
+Images, icons, video, music, metadata and plots reach the screen or the output at the right size, in the right order, within a budget, on whatever the hardware offers (system's `opendap-media`, planners and pure math; the components and services run the decoding and the I/O). Tried in the Media screen: a million samples drawn in 144 columns with the peak kept; a 3000 px cover decoded at 96 px in a tile.
+
+| Primitive | Does |
+|---|---|
+| Resource and variants | One identity, several renditions; the one for a target: the smallest that covers it (HTML's `srcset`) |
+| Fit and decode size | `contain`, `cover`, `fill`, `none`, `scale-down` (§6.4): where content lands, the source part shown, and the size to decode at: the box's physical pixels, never more than the source |
+| Decode queue | Visible, then prefetch, then background; bounded in parallel (audio comes first, T1-008), deduplicated, cancellable |
+| Progressive chain | Dominant colour, thumbnail, full; a fling stops at the thumbnail |
+| Tiers | Decoded in memory, encoded on disk, or to fetch; each tier its own budget |
+| Audio buffering | Reads between watermarks in few long bursts (the storage sleeps: battery); the next track opened ahead, sample-exact, for gapless playback |
+| Video pacing | The frame for each refresh; repeats and drops counted (3:2 pulldown on 60 Hz) |
+| Plot decimation | Min and max per column, so every peak and clip shows; a ring buffer for live meters |
+| Render path | The GPU where the hardware meets a feature's needs, software otherwise, each feature on its own (SYS-040) |
+
 ## 8. Motion
 
 **Proven:** durations and easing curves as tokens (Material, the design system's `motion.*`); springs for anything a hand moves, since they carry the gesture's velocity and can be interrupted (SwiftUI, Compose, UIKit dynamics); enter and exit transitions for what appears and disappears (SwiftUI transitions, Framer's presence); layout animation of position changes (FLIP); shared-element transitions between screens; reduce motion that keeps the information and drops the movement.
 
 - **Slint gives:** `animate` on any property (duration, delay, easing), easing curves including `cubic-bezier`, `ease-out-bounce` and `spring(bounce)`; `states` transitions.
+- **Primitives** (system's `opendap-motion`, pure functions of time): springs solved in closed form, critically damped by default, carrying a gesture's release velocity; cubic-bezier curves solved exactly; a fling's decay and where it stops; an interruptible animator that retargets from where the value is, with its velocity, and lands at once with reduce motion; a frame budget that asks for frames only while something moves. Tried in the Media screen: a block thrown by the finger, or by Action, springs back; frames stop at rest.
 - **Rules:**
   - **Timed for what the system starts, springs for what a hand moves.** A screen change, a toast or a state change takes the motion tokens (`fast` 120 ms, `standard` 200 ms, `slow` 320 ms, the standard easing). A drag released, a sheet thrown or a knob let go settles with a critically damped spring from its velocity. `bounce` is never used for a routine screen (§2.2); `ease-out-bounce` is not used at all.
   - **Everything is interruptible:** a new input takes over from wherever the animation is, never waits for it to end.
