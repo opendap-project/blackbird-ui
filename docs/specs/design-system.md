@@ -361,6 +361,8 @@ Every interaction gets immediate, unambiguous feedback within the [experience bu
 
 Animation clarifies a change of state; it never decorates every interaction.
 
+**States** ([ADR 0003](../adr/0003-screen-states.md)). Empty: what is empty, how to fill it, at most one action. Loading: the structure at once, a 2 px line past 300 ms, "Loading…" past 1 s, a value and Cancel when the length is known. Error: icon and words, what failed and why, the next step and its action, never looking like loading. Disabled: 45 % opacity with its reason always visible under it, still focusable.
+
 **Focus on entry** (maintainers, 2026-10-23). Entering a view or an activity moves the focus to its first focusable element, so the buttons alone (Volume to move, Action to take it) work from the first press: the power menu opens with its first choice focused.
 
 ### 8.5 Gestures
